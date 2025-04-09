@@ -1,0 +1,29 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:latest
+    container_name: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: iamuserroot
+      POSTGRES_DB: spotify_clone
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+  
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.be
+    container_name: backend
+    restart: always
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@db:5432/spotify_clone
+      JWT_SECRET: your_jwt_secret
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db

@@ -1,0 +1,29 @@
+clone_spotify
+|---- backend/                # Backend - Django
+|     |---- api/              # API Django (DRF)
+|     |---- chat/             # WebSocket Chat (Django Channels)
+|     |---- database/         # Models & Migrations
+|     |---- services/         # Business logic (playlist, music streaming, ...)
+|     |---- utils/            # Helper functions
+|     |---- manage.py         # Django entry point
+|     |---- requirements.txt  # Python dependencies
+|
+|---- crawler/                # Cào dữ liệu từ Spotify API
+|     |---- spiders/          # Chứa script cào dữ liệu
+|     |---- services/         # Xử lý dữ liệu đã crawl
+|     |---- database/         # Lưu cache dữ liệu crawl
+|     |---- main.py           # Entry point
+|
+|---- frontend/               # Frontend - React
+|     |---- src/
+|     |    |---- components/  # UI components
+|     |    |---- pages/       # React pages (Home, Playlist, Search, etc.)
+|     |    |---- services/    # Gọi API từ backend
+|     |    |---- hooks/       # Custom React Hooks
+|     |    |---- App.js       # App entry point
+|     |---- public/           # Static assets
+|     |---- package.json      # React dependencies
+|
+|---- docker-compose.yml      # Docker setup
+|---- Dockerfile              # Dockerfile Backend
+|---- README.md               # Hướng dẫn cài đặt
