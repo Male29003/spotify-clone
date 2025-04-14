@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
-
+from decouple import config
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -37,7 +37,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'music',  # Your music app
+    'rest_framework',  # Django REST framework
+    'music.apps.MusicConfig',  # Your music app
 ]
 
 MIDDLEWARE = [
@@ -76,10 +77,16 @@ WSGI_APPLICATION = 'spotify_clone.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',  # Use 'django.db.backends.postgresql' for PostgreSQL
+        'NAME': config('POSTGRES_DB'),  # Database name
+        'USER': config('POSTGRES_USER'),  # Database user
+        'PASSWORD': config('POSTGRES_PASSWORD'),  # Database password
+        'HOST': config('DB_HOST', default='localhost'),  # Database host
+        'PORT': config('DB_PORT', default='5432'),  # Database port
     }
 }
+
+JWT = { config('JWT_SECRET')}
 
 
 # Password validation
