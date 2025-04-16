@@ -14,8 +14,9 @@ This is a Spotify-like clone app with features such as:
 
 ## 📦 2. Dockerized Setup (Frontend + Backend)
 To simplify setup, this project uses **Docker Compose** to containerize both the frontend and backend.
-> If you don’t have Docker Desktop installed, download it here:  
-👉  <a href="https://www.docker.com/get-started/" target="_blank">Install Docker Desktop</a>
+> If you don’t have Docker Desktop installed, download it here:
+👉 [Install Docker Desktop](https://www.docker.com/get-started/)
+  _(Right-click or Ctrl/Cmd+Click to open in a new tab)_
 
 After Docker is installed, you can run the app.
 ---
