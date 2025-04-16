@@ -30,8 +30,13 @@ Open your terminal and run the following commands:
 git clone https://github.com/your-username/clone-spotify.git
 cd clone-spotify
 
-# Step 2: Build containers
-docker-compose build
+# Step 2: Set up
+  ## Install npm dependencies for frontend
+    cd frontend
+    npm install
+  ## Build images
+    cd ..
+    docker-compose build
 
 # Step 3: Start containers
 docker-compose up
