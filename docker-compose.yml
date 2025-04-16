@@ -47,6 +47,8 @@ services:
       - "5173:5173"
     volumes:
       - ./frontend:/app/frontend
+    depends_on:
+      - db
     networks:
       - app_net
 

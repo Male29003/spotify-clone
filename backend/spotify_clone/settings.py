@@ -38,7 +38,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',  # Django REST framework
-    'music.apps.MusicConfig',  # Your music app
+    'api.apps.ApiConfig',  # Your API app
+    'music',  # Your music app
 ]
 
 MIDDLEWARE = [
