@@ -15,7 +15,7 @@ services:
       - db_data:/var/lib/postgresql/data
     networks:
       - app_net
-  
+
   backend:
     restart: always
     container_name: backend
