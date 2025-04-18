@@ -42,11 +42,9 @@ function App() {
         }}
       >
         <QueryClientProvider client={queryClient}>
-          <AuthProvider>
-            <AntApp>
-              <RouterProvider router={router} />
-            </AntApp>
-          </AuthProvider>
+          <AntApp>
+            <RouterProvider router={router} />
+          </AntApp>
         </QueryClientProvider>
       </ConfigProvider>
     </>
