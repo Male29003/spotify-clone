@@ -87,8 +87,7 @@ DATABASES = {
     }
 }
 
-JWT = { config('JWT_SECRET')}
-
+JWT = config('JWT_SECRET')
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
