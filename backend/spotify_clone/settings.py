@@ -37,9 +37,15 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'rest_framework',  # Django REST framework
-    'api.apps.ApiConfig',  # Your API app
-    'music',  # Your music app
+    # Django REST framework
+    'rest_framework',  
+    #Local apps
+    'apps.albums',  # album app
+    'apps.artists',  # artist app
+    'apps.music',  # music app
+    'apps.playlists',  # playlists app
+    'apps.users',  # users app
+
 ]
 
 MIDDLEWARE = [
@@ -124,6 +130,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = 'static/'
+
+MEDIA_URL = "/mediafiles/"
+MEDIA_ROOT = BASE_DIR / "mediafiles"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
