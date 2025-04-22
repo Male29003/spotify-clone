@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 from decouple import config
+import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -79,13 +80,15 @@ WSGI_APPLICATION = 'spotify_clone.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',  # Use 'django.db.backends.postgresql' for PostgreSQL
-        'NAME': config('POSTGRES_DB'),  # Database name
-        'USER': config('POSTGRES_USER'),  # Database user
-        'PASSWORD': config('POSTGRES_PASSWORD'),  # Database password
-        'HOST': config('DB_HOST', default='localhost'),  # Database host
-        'PORT': config('DB_PORT', default='5432'),  # Database port
+        'NAME': os.getenv('DB_NAME'),  # Database name
+        'USER': os.getenv('DB_USER'),  # Database user
+        'PASSWORD': os.getenv('DB_PASSWORD'),  # Database password
+        'HOST': os.getenv('DB_HOST'),  # Database host
+        'PORT': os.getenv('DB_PORT'),  # Database port
     }
 }
+
+print(DATABASES)
 
 JWT = { config('JWT_SECRET')}
 

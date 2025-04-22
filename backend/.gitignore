@@ -1,0 +1,10 @@
+# Bỏ qua thư mục virtual environment
+env/
+venv/
+.venv/
+myenv/
+myenv
+
+.myenv/
+ENV/
+.ENV/
