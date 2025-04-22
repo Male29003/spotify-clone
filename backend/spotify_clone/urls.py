@@ -18,7 +18,7 @@ from django.contrib import admin
 from django.urls import path, include
 
 urlpatterns = [
-    #path('admin/', admin.site.urls),
-    path('', include('api.urls')),  # Include the music app URLs
+    path('admin/', admin.site.urls),
+    path('api/users', include("apps.users.api.urls"), name="users"),  # Include the music app URLs
     # Add other app URLs here as needed
 ]
