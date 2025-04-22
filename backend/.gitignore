@@ -1,4 +1,8 @@
-# Ignore virtual environment folder
-myenv/
+# Bỏ qua thư mục virtual environment
+env/
 venv/
-.env/
+.venv/
+myenv/
+.myenv/
+ENV/
+.ENV/

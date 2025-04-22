@@ -1,4 +1,5 @@
 .env
+.vscode/
 # Ignore virtual environment folder
 myenv/
 venv/
