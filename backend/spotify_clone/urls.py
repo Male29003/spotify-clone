@@ -22,6 +22,7 @@ from drf_spectacular.views import SpectacularSwaggerView, SpectacularAPIView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/users', include("apps.users.api.urls"), name="users"),  # Include the music app URLs
     # Add other app URLs here as needed
 ]
 
