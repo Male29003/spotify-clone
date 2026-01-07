@@ -11,8 +11,9 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
-from decouple import config
+from dotenv import load_dotenv
 import os
+from datetime import timedelta
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -26,9 +27,14 @@ SECRET_KEY = 'django-insecure-y_2g9&)t2z6e1(vgws7d0l-cw_+w_zkpz^m7o$_^okyh9^go5v
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:5713',
+]
+CORS_URLS_REGEX = r"^/api/.*$"
 
+AUTH_USER_MODEL = 'users.User'
 
+DOMAIN = os.getenv('DOMAIN', 'localhost:8000')
 # Application definition
 
 INSTALLED_APPS = [
@@ -39,15 +45,21 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     # Django REST framework
-    'rest_framework',  
-
+    'rest_framework',
+    'rest_framework_simplejwt',
+    'drf_spectacular',
     # Other apps - API albums, artists, playlists, music, users
-    'api.apps.ApiConfig',
-    'apps.albums.apps.AlbumsConfig',  
-    'apps.artists.apps.ArtistsConfig',  
-    'apps.playlists.apps.PlaylistsConfig',
-    'apps.music.apps.MusicConfig',  
-    'apps.users.apps.UsersConfig',  
+    'apps.albums',
+    'apps.artists',
+    'apps.core',
+    'apps.genres',
+    'apps.playlists',
+    'apps.music',
+    'apps.users',
+    #
+    'cloudinary_storage',
+    'django.contrib.staticfiles',
+    "cloudinary",
 ]
 
 MIDDLEWARE = [
@@ -84,22 +96,50 @@ WSGI_APPLICATION = 'spotify_clone.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
+load_dotenv()
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',  # Use 'django.db.backends.postgresql' for PostgreSQL
-        'NAME': os.getenv('DB_NAME'),  # Database name
-        'USER': os.getenv('DB_USER'),  # Database user
-        'PASSWORD': os.getenv('DB_PASSWORD'),  # Database password
-        'HOST': os.getenv('DB_HOST'),  # Database host
-        'PORT': os.getenv('DB_PORT'),  # Database port
+        'NAME': os.getenv('DB_NAME', 'spotify_clone'),  # Database name
+        'USER': os.getenv('DB_USER', 'root'),  # Database user
+        'PASSWORD': os.getenv('DB_PASSWORD', 'password'),  # Database password
+        'HOST': os.getenv('DB_HOST', 'localhost'),  # Database host
+        'PORT': os.getenv('DB_PORT', '5432'),  # Database port
+        'OPTIONS': {
+            'sslmode': 'require',
+        },
     }
 }
 
-print(DATABASES)
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema'
+}
 
-JWT = { config('JWT_SECRET')}
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Spotify Clone API',
+    'DESCRIPTION': 'API documentation for Spotify Clone project',
+    'VERSION': '0.1',
+    'SCHEMA_PATH_PREFIX': r"/api/v1/",
+    'SERVE_INCLUDE_SCHEMA': False,
+    'COMPONENT_SPLIT_REQUEST': True,
+}
 
-
+SIMPLE_JWT = {
+    'AUTH_HEADER_TYPES': ('Bearer',),
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=5),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'ROTATE_REFRESH_TOKENS': True,
+    'USER_ID_FIELD': 'id',
+    'USER_ID_CLAIM': 'user_id',
+    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
+    'AUTH_COOKIE': 'access',
+}
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
 
@@ -136,7 +176,8 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-
+MEDIA_URL = 'mediafiles/'
+MEDIA_ROOT = BASE_DIR / 'mediafiles'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
