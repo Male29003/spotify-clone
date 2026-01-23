@@ -1,5 +1,6 @@
 from django.contrib import admin
 from .models import Artist, FavouriteArtist, ArtistVerificationRequest
+from .models import Artist, FavouriteArtist, ArtistVerificationRequest
 
 # Register your models here.
 @admin.register(Artist)

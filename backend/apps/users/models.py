@@ -18,6 +18,25 @@ TYPE_PROFILE = Choices(
     ("user", _("User")),
     ("artist", _("Artist")),
 )
+from model_utils import Choices
+from django.utils import timezone
+from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
+from ..core.services import get_path_upload_image_user, validate_image_size
+from django.utils.translation import gettext_lazy as _
+from .managers import CustomUserManager
+from django_countries.fields import CountryField
+
+GENDER_CHOICES = Choices(
+    ("male", _("Male")),
+    ("female", _("Female")),
+    ("other", _("Other")),
+    ("prefer_not_to_say", _("Prefer not to say")),
+)
+
+TYPE_PROFILE = Choices(
+    ("user", _("User")),
+    ("artist", _("Artist")),
+)
 
 # Create your models here.
 class User(AbstractBaseUser, PermissionsMixin):

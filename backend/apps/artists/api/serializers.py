@@ -3,6 +3,10 @@ from drf_spectacular.types import OpenApiTypes
 from ..models import Artist, FavouriteArtist
 from ...music.models import Track
 from ...users.api.serializers import ShortUserDetailSerializer
+from drf_spectacular.types import OpenApiTypes
+from ..models import Artist, FavouriteArtist
+from ...music.models import Track
+from ...users.api.serializers import ShortUserDetailSerializer
 
 #Artist serializers
 class ArtistSerializer(serializers.ModelSerializer):
