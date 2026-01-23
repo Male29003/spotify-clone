@@ -17,12 +17,10 @@ from datetime import timedelta
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+load_dotenv()
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-y_2g9&)t2z6e1(vgws7d0l-cw_+w_zkpz^m7o$_^okyh9^go5v'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -31,11 +29,12 @@ CORS_ALLOWED_ORIGINS = [
     'http://localhost:5713',
 ]
 CORS_URLS_REGEX = r"^/api/.*$"
+SECRET_KEY = os.getenv('SECRET_KEY', 'chuoi-tam-thoi-de-khong-bi-loi-khi-dev')
 
 AUTH_USER_MODEL = 'users.User'
 
 DOMAIN = os.getenv('DOMAIN', 'localhost:8000')
-# Application definition
+# Application definitions
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -56,10 +55,7 @@ INSTALLED_APPS = [
     'apps.playlists',
     'apps.music',
     'apps.users',
-    #
-    'cloudinary_storage',
-    'django.contrib.staticfiles',
-    "cloudinary",
+    'apps.subscription',
 ]
 
 MIDDLEWARE = [
@@ -96,18 +92,15 @@ WSGI_APPLICATION = 'spotify_clone.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-load_dotenv()
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',  # Use 'django.db.backends.postgresql' for PostgreSQL
         'NAME': os.getenv('DB_NAME', 'spotify_clone'),  # Database name
-        'USER': os.getenv('DB_USER', 'root'),  # Database user
-        'PASSWORD': os.getenv('DB_PASSWORD', 'password'),  # Database password
+        'USER': os.getenv('DB_USER', 'postgres'),  # Database user
+        'PASSWORD': os.getenv('DB_PASSWORD', 'iamuserroot'),  # Database password
         'HOST': os.getenv('DB_HOST', 'localhost'),  # Database host
         'PORT': os.getenv('DB_PORT', '5432'),  # Database port
-        'OPTIONS': {
-            'sslmode': 'require',
-        },
     }
 }
 
@@ -158,25 +151,18 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_TZ = True
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = 'static/'
 
-MEDIA_URL = 'mediafiles/'
 MEDIA_ROOT = BASE_DIR / 'mediafiles'
 
 # Default primary key field type
