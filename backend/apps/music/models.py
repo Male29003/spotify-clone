@@ -1,65 +1,87 @@
 from django.db import models
 from ..core.models import BaseModel
-from ..artists.models import Artist
 from autoslug import AutoSlugField
-from datetime import timedelta, date
-from django.contrib.auth import get_user_model
-from ..core.services import get_path_upload_image_album, validate_image_size, get_path_upload_audio_track, validate_audio_size
-from ..artists.models import Artist
-from ..genres.models import Genre
-from ..albums.models import Album
-from ..users.models import User
-from mutagen import File
 from django.utils.translation import gettext_lazy as _
 
+from django.contrib.auth import get_user_model
+
 User = get_user_model()
-# Create your models here.
+
+class TrackAccessType(models.TextChoices):
+    FREE = 'free', _('Free')
+    PREMIUM = 'premium', _('Premium')
+    
+
 class Track(BaseModel):
-    """Track model representing a music track."""
-
     title = models.CharField(max_length=255)
-    artist = models.ForeignKey(Artist, on_delete=models.CASCADE, related_name="tracks")
-    slug = AutoSlugField(populate_from="title", unique=True)
-    image = models.ImageField(
-        upload_to=get_path_upload_image_album, 
-        validators=[validate_image_size], 
-        blank=True, 
-        null=True, 
-        default="default/track.jpg"
+    artist = models.ForeignKey(
+        'artists.Artist',
+        on_delete=models.CASCADE,
+        related_name='tracks'
     )
-    genre = models.ForeignKey(Genre, on_delete=models.CASCADE, related_name="tracks")
     album = models.ForeignKey(
-        Album, 
-        on_delete=models.SET_NULL, 
-        related_name="tracks", 
-        null=True
-    )
-    file_url = models.FileField(upload_to=get_path_upload_audio_track, validators=[validate_audio_size], )
-    duration = models.DurationField(blank=True, null=False)
-
-    listens = models.PositiveBigIntegerField(default=0)
-    downloads = models.PositiveBigIntegerField(default=0)
-    likes = models.PositiveBigIntegerField(default=0)
-
-    liked_by = models.ManyToManyField(
-        User, 
-        related_name="liked_tracks", 
+        'albums.Album',
+        on_delete=models.CASCADE,
+        related_name='tracks',
+        null=True,
         blank=True
     )
-    
-    release_date = models.DateField(null=True)
-    is_private = models.BooleanField(default=False)
+    genre = models.ForeignKey(
+        'genres.Genre',
+        on_delete=models.CASCADE,
+        related_name='tracks'
+    )
+
+    slug = AutoSlugField(populate_from='title', unique=True)
+    image = models.ImageField(
+        upload_to='tracks/images/',
+        blank=True,
+        default='default/tracks.jpg')
+    duration = models.DurationField(null=True, blank=True)
+
+    # Link to audio file
+    file_url = models.FileField(help_text='Streaming')
+    preview_file = models.FileField(
+        upload_to="tracks/previews/",
+        null=True,
+        blank=True,
+    )
+
+    listens = models.PositiveIntegerField(default=0)
+    downloads = models.PositiveIntegerField(default=0)
+
+    liked_by = models.ManyToManyField(User, related_name='liked_tracks', blank=True)
+
+    release_date = models.DateField(null=True, blank=True)
+    is_premium_only = models.BooleanField(default=False, help_text='Premium track for premium users only')
 
     class Meta:
-        ordering = ["-created_at"]
-        verbose_name = _("Track")
-        verbose_name_plural = _("Tracks")
+        ordering = ['-created_at']
+        verbose_name = 'Track'
+        verbose_name_plural = 'Tracks'
 
     def __str__(self):
         return self.title
+    
 
-    def save(self, *args, **kwargs):
-        audio = File(self.file_url)
-        if audio is not None:
-            self.duration = timedelta(seconds=audio.info.length)
-        super().save(*args, **kwargs)
+class Video(BaseModel):
+    track = models.ForeignKey(
+        Track,
+        on_delete=models.CASCADE,
+        related_name='canvas'
+    )
+    file_url = models.FileField(help_text='URL of the canvas video')
+    slug = AutoSlugField(populate_from='track__title', unique=True)
+    thumbnail = models.ImageField(
+        upload_to='tracks/canvas/thumbnails/', 
+        null=True, 
+        blank=True, 
+        default='default/canvas_thumbnail.jpg'
+    )
+
+    class Meta:
+        verbose_name = 'Track Canvas'
+        verbose_name_plural = 'Track Canvases'
+
+    def __str__(self):
+        return f'Canvas video of "{self.track.title}"'

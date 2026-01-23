@@ -27,16 +27,23 @@ class User(AbstractBaseUser, PermissionsMixin):
         max_length=255
     )
     username = models.CharField(
+        unique=True,
         max_length=150,
         blank=True
     )
     phone = models.CharField(max_length=15, unique=True)
-    image = models.ImageField(
+    profile_picture = models.ImageField(
         upload_to=get_path_upload_image_user,
         validators=[validate_image_size],
         default='default/profile_picture.png',
         blank=True,
     )
+    first_name = models.CharField(
+        max_length=30,
+        blank=True,
+    )
+    password = models.CharField(max_length=128)
+
     country = CountryField(
         blank_label="Select a country",
         default="VN",
@@ -53,15 +60,22 @@ class User(AbstractBaseUser, PermissionsMixin):
         choices=TYPE_PROFILE,
         default=TYPE_PROFILE.user,
     )
-    followers = models.ManyToManyField('self', symmetrical=False, related_name='following', blank=True)
-    date_joined = models.DateTimeField(default=timezone.now)
+    followers = models.ManyToManyField(
+        'self', 
+        symmetrical=False, 
+        related_name='following', 
+        blank=True
+    )
 
-    is_premium = models.BooleanField(default=False)
 
     # User permissions
-    is_active = models.BooleanField(default=True)
-    is_staff = models.BooleanField(default=False)
+    is_premium = models.BooleanField(default=False)
 
+    is_active = models.BooleanField(default=True)
+
+    date_joined = models.DateTimeField(default=timezone.now)
+    
+    
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["username"]
 
@@ -78,7 +92,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     def save(self, *args, **kwargs):
         username_email = self.email.split("@", 1)
         if self.username is None or self.username == "":
-            self.username = username_email
+            self.username = username_email[0]
         super().save(*args, **kwargs)
 
     def follow(self, user):

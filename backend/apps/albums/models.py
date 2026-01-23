@@ -1,6 +1,5 @@
 from django.db import models
 from ..core.models import BaseModel
-from ..artists.models import Artist
 from autoslug import AutoSlugField
 from django.contrib.auth import get_user_model
 from ..core.services import get_path_upload_image_album, validate_image_size
@@ -9,19 +8,16 @@ from django.utils.translation import gettext_lazy as _
 User = get_user_model()
 # Create your models here.
 class Album(BaseModel):
-    """Album model representing a music album."""
-
     title = models.CharField(max_length=255)
     artist = models.ForeignKey(
-        Artist, 
+        'artists.Artist', 
         on_delete=models.CASCADE, 
         related_name="albums"
     )
     description = models.TextField(blank=True, null=True, max_length=500)
     slug = AutoSlugField(populate_from="title", unique=True)
     image = models.ImageField(
-        upload_to=get_path_upload_image_album, 
-        validators=[validate_image_size],
+        upload_to='albums/images/', 
         blank=True, 
         null=True,
         default="default/album.jpg"
@@ -58,10 +54,8 @@ class Album(BaseModel):
     
 
 class FavouriteAlbum(BaseModel):
-    """Model to represent a user's favorite albums."""
-
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="favourite_albums")
-    album = models.ForeignKey(Album, on_delete=models.CASCADE, related_name="favourite_albums")
+    album = models.ForeignKey(Album, on_delete=models.CASCADE, related_name="favourite_by")
 
     class Meta:
         unique_together = ("user", "album")

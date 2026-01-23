@@ -16,7 +16,7 @@ class ArtistSerializer(serializers.ModelSerializer):
             "id",
             "user",
             "username",
-            "firt_name",
+            "first_name",
             "last_name",
             "image",
             "slug",
