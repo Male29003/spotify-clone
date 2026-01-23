@@ -4,3 +4,10 @@
 myenv/
 venv/
 .env/
+crawler/
+mediafiles/
+# Ignore db folder 
+db/
+
+*.txt
+gather_codes.py

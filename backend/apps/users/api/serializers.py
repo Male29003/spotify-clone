@@ -59,7 +59,7 @@ class UserSerializer(CountryFieldMixin, serializers.ModelSerializer):
             'email', 
             'username',
             'phone', 
-            'image', 
+            'profile_picture', 
             'country',
             'gender',
             'type',
@@ -99,7 +99,7 @@ class UserUpdateSerializer(CountryFieldMixin, serializers.ModelSerializer):
 class UserProfilePictureSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ("image",)
+        fields = ("profile_picture",)
 
 class ChangePasswordSerializer(serializers.Serializer):
     old_password = serializers.CharField(required=True)
