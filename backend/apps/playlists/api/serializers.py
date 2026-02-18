@@ -33,7 +33,7 @@ class ShortPlaylistSerializer(serializers.ModelSerializer):
             "tracks_count"
         ]
 
-class FavouritePlylistSerializer(serializers.ModelSerializer):
+class FavouritePlaylistSerializer(serializers.ModelSerializer):
     playlist=PlaylistSerializer(read_only=True)
     
     class Meta:

@@ -1,14 +1,10 @@
 from rest_framework import serializers
-from drf_spectacular.types import OpenApiTypes
-from ..models import Artist, FavouriteArtist
-from ...music.models import Track
 from ...users.api.serializers import ShortUserDetailSerializer
-from drf_spectacular.types import OpenApiTypes
 from ..models import Artist, FavouriteArtist
-from ...music.models import Track
 from ...users.api.serializers import ShortUserDetailSerializer
 
 #Artist serializers
+
 class ArtistSerializer(serializers.ModelSerializer):
     user = ShortUserDetailSerializer(read_only=True, many=False)
     track_slug = serializers.SerializerMethodField(read_only=True)
@@ -59,7 +55,7 @@ class UpdateArtistSerializer(serializers.ModelSerializer):
 class FavouriteArtistSerializer(serializers.ModelSerializer):
     artist = ShortArtistSerializer(read_only=True, many=False)
     class Meta:
-        model = Artist
+        model = FavouriteArtist
         fields = [
             "id",
             "artist",

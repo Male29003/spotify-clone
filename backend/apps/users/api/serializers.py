@@ -2,7 +2,6 @@ from rest_framework import serializers
 from django.contrib.auth import get_user_model, authenticate
 from django.contrib.auth.password_validation import validate_password
 from django_countries.serializers import CountryFieldMixin
-from rest_framework_simplejwt.serializers import RefreshToken
 #User serializers
 User = get_user_model()
 

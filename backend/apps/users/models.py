@@ -18,25 +18,6 @@ TYPE_PROFILE = Choices(
     ("user", _("User")),
     ("artist", _("Artist")),
 )
-from model_utils import Choices
-from django.utils import timezone
-from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
-from ..core.services import get_path_upload_image_user, validate_image_size
-from django.utils.translation import gettext_lazy as _
-from .managers import CustomUserManager
-from django_countries.fields import CountryField
-
-GENDER_CHOICES = Choices(
-    ("male", _("Male")),
-    ("female", _("Female")),
-    ("other", _("Other")),
-    ("prefer_not_to_say", _("Prefer not to say")),
-)
-
-TYPE_PROFILE = Choices(
-    ("user", _("User")),
-    ("artist", _("Artist")),
-)
 
 # Create your models here.
 class User(AbstractBaseUser, PermissionsMixin):
@@ -61,7 +42,8 @@ class User(AbstractBaseUser, PermissionsMixin):
         max_length=30,
         blank=True,
     )
-    password = models.CharField(max_length=128)
+    
+    #password = models.CharField(max_length=128)
 
     country = CountryField(
         blank_label="Select a country",
@@ -94,6 +76,12 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     date_joined = models.DateTimeField(default=timezone.now)
     
+    # Check if user is staff
+    is_staff = models.BooleanField(
+        _("staff status"),
+        default=False,
+        help_text=_("Designates whether the user can log into this admin site."),
+    )
     
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["username"]
@@ -143,10 +131,9 @@ class User(AbstractBaseUser, PermissionsMixin):
     def get_profile(self):
         """ Return profile user or artist """
         if self.is_artist:
-            # If you are an artist, return artist
-            return self.artist
-        # else Default return a normal user
+            return getattr(self, 'artist_profile', self)
         return self
 
+    @property
     def is_artist(self):
         return self.type == TYPE_PROFILE.artist
