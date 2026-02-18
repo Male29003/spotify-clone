@@ -2,6 +2,10 @@ from rest_framework import serializers
 from ...users.api.serializers import ShortUserDetailSerializer
 from ..models import Artist, FavouriteArtist
 from ...users.api.serializers import ShortUserDetailSerializer
+from drf_spectacular.types import OpenApiTypes
+from ..models import Artist, FavouriteArtist
+from ...music.models import Track
+from ...users.api.serializers import ShortUserDetailSerializer
 
 #Artist serializers
 

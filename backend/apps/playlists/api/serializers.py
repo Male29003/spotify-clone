@@ -1,4 +1,5 @@
 from ...music.api.serializers import ShortTrackSerializer
+from ...music.api.serializers import ShortTrackSerializer
 from rest_framework import serializers
 from ..models import Playlist, FavouritePlaylist
 

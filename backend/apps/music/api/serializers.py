@@ -13,6 +13,7 @@ class TrackSerializer(serializers.ModelSerializer):
 
     class Meta: 
         model = Track
+        model = Track
         fields =[
             "id",
             "title",
@@ -27,6 +28,8 @@ class TrackSerializer(serializers.ModelSerializer):
             "downloads",
             "likes_count",
             "is_premium_only",
+            "likes_count",
+            "is_premium_only",
             "release_date",
             "created_at",
             "updated_at",
@@ -34,6 +37,7 @@ class TrackSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             "listens": {"read_only": True},
             "downloads": {"read_only": True},
+            "likes_count": {"read_only": True},
             "likes_count": {"read_only": True},
             "duration": {"read_only": True},
         }
@@ -55,9 +59,11 @@ class ShortTrackSerializer(TrackSerializer):
             "genre",
             "duration",
             "likes_count",
+            "likes_count",
             "listens"
         ]
 
+class CreateNewTrackSerializer(serializers.ModelSerializer):
 class CreateNewTrackSerializer(serializers.ModelSerializer):
     album = serializers.PrimaryKeyRelatedField(
         queryset=apps.get_model('albums', 'Album').objects.all(),

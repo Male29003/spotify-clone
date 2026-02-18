@@ -18,6 +18,25 @@ TYPE_PROFILE = Choices(
     ("user", _("User")),
     ("artist", _("Artist")),
 )
+from model_utils import Choices
+from django.utils import timezone
+from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
+from ..core.services import get_path_upload_image_user, validate_image_size
+from django.utils.translation import gettext_lazy as _
+from .managers import CustomUserManager
+from django_countries.fields import CountryField
+
+GENDER_CHOICES = Choices(
+    ("male", _("Male")),
+    ("female", _("Female")),
+    ("other", _("Other")),
+    ("prefer_not_to_say", _("Prefer not to say")),
+)
+
+TYPE_PROFILE = Choices(
+    ("user", _("User")),
+    ("artist", _("Artist")),
+)
 
 # Create your models here.
 class User(AbstractBaseUser, PermissionsMixin):
@@ -28,10 +47,12 @@ class User(AbstractBaseUser, PermissionsMixin):
     )
     username = models.CharField(
         unique=True,
+        unique=True,
         max_length=150,
         blank=True
     )
     phone = models.CharField(max_length=15, unique=True)
+    profile_picture = models.ImageField(
     profile_picture = models.ImageField(
         upload_to=get_path_upload_image_user,
         validators=[validate_image_size],
@@ -70,6 +91,15 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 
     # User permissions
+    followers = models.ManyToManyField(
+        'self', 
+        symmetrical=False, 
+        related_name='following', 
+        blank=True
+    )
+
+
+    # User permissions
     is_premium = models.BooleanField(default=False)
 
     is_active = models.BooleanField(default=True)
@@ -99,6 +129,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     def save(self, *args, **kwargs):
         username_email = self.email.split("@", 1)
         if self.username is None or self.username == "":
+            self.username = username_email[0]
             self.username = username_email[0]
         super().save(*args, **kwargs)
 

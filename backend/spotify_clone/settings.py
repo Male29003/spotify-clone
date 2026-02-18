@@ -13,12 +13,15 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 from pathlib import Path
 from dotenv import load_dotenv
 from dotenv import load_dotenv
+from dotenv import load_dotenv
 import os
+from datetime import timedelta
 from datetime import timedelta
 from datetime import timedelta
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+load_dotenv()
 load_dotenv()
 
 # Quick-start development settings - unsuitable for production
@@ -32,10 +35,12 @@ CORS_ALLOWED_ORIGINS = [
 ]
 CORS_URLS_REGEX = r"^/api/.*$"
 SECRET_KEY = os.getenv('SECRET_KEY', 'chuoi-tam-thoi-de-khong-bi-loi-khi-dev')
+SECRET_KEY = os.getenv('SECRET_KEY', 'chuoi-tam-thoi-de-khong-bi-loi-khi-dev')
 
 AUTH_USER_MODEL = 'users.User'
 
 DOMAIN = os.getenv('DOMAIN', 'localhost:8000')
+# Application definitions
 # Application definitions
 
 INSTALLED_APPS = [
@@ -57,6 +62,7 @@ INSTALLED_APPS = [
     'apps.playlists',
     'apps.music',
     'apps.users',
+    'apps.subscription',
     'apps.subscription',
 ]
 
@@ -96,11 +102,15 @@ WSGI_APPLICATION = 'spotify_clone.wsgi.application'
 
 
 
+
+
 load_dotenv()
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',  # Use 'django.db.backends.postgresql' for PostgreSQL
         'NAME': os.getenv('DB_NAME', 'spotify_clone'),  # Database name
+        'USER': os.getenv('DB_USER', 'postgres'),  # Database user
+        'PASSWORD': os.getenv('DB_PASSWORD', 'iamuserroot'),  # Database password
         'USER': os.getenv('DB_USER', 'postgres'),  # Database user
         'PASSWORD': os.getenv('DB_PASSWORD', 'iamuserroot'),  # Database password
         'HOST': os.getenv('DB_HOST', 'localhost'),  # Database host
