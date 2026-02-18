@@ -50,7 +50,7 @@ class UserSubscription(models.Model):
 class Payment(models.Model):
     user = models.ForeignKey(
         User,
-        on_delete=models.CASCADE, 
+        on_delete=models.CASCADE,
         related_name='payments'
     )
     subscription_plan = models.ForeignKey(

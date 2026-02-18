@@ -1,20 +1,18 @@
+from django.apps import apps
 from rest_framework import serializers
 from ...artists.api.serializers import ShortArtistSerializer
-from ...albums.api.serializers import ShortAlbumSerializer
 from ..models import Track
-from ...albums.models import Album
-from ...genres.models import Genre
-from ...artists.models import Artist
 from ...genres.api.serializers import GenreSerializer
 
 #Song serializers
 class TrackSerializer(serializers.ModelSerializer):
     artist = ShortArtistSerializer(read_only=True, many=False)
     genre = GenreSerializer(read_only=True)
-    album = ShortAlbumSerializer(read_only=True, many=False)
+    album = serializers.SerializerMethodField()
     likes_count = serializers.IntegerField(source='liked_by.count', read_only=True)
 
     class Meta: 
+        model = Track
         model = Track
         fields =[
             "id",
@@ -30,6 +28,8 @@ class TrackSerializer(serializers.ModelSerializer):
             "downloads",
             "likes_count",
             "is_premium_only",
+            "likes_count",
+            "is_premium_only",
             "release_date",
             "created_at",
             "updated_at",
@@ -38,8 +38,15 @@ class TrackSerializer(serializers.ModelSerializer):
             "listens": {"read_only": True},
             "downloads": {"read_only": True},
             "likes_count": {"read_only": True},
+            "likes_count": {"read_only": True},
             "duration": {"read_only": True},
         }
+
+    def get_album(self, obj):
+        if not obj.album:
+            return None
+        from apps.albums.api.serializers import ShortAlbumSerializer
+        return ShortAlbumSerializer(obj.album, context=self.context).data
 
 class ShortTrackSerializer(TrackSerializer):
     class Meta:
@@ -52,20 +59,22 @@ class ShortTrackSerializer(TrackSerializer):
             "genre",
             "duration",
             "likes_count",
+            "likes_count",
             "listens"
         ]
 
 class CreateNewTrackSerializer(serializers.ModelSerializer):
+class CreateNewTrackSerializer(serializers.ModelSerializer):
     album = serializers.PrimaryKeyRelatedField(
-        queryset=Album.objects.all(),
+        queryset=apps.get_model('albums', 'Album').objects.all(),
         required=False
     )
     genre = serializers.PrimaryKeyRelatedField(
-        queryset=Genre.objects.all()
+        queryset=apps.get_model('genres', 'Genre').objects.all(),
     )
-    artist = serializers.PrimaryKeyRelatedField(
-        queryset=Artist.objects.all()
-    )
+    # artist = serializers.PrimaryKeyRelatedField(
+    #     queryset=apps.get_model('artists', 'Artist').objects.all(),
+    # )
 
     class Meta:
         model = Track
@@ -80,3 +89,7 @@ class CreateNewTrackSerializer(serializers.ModelSerializer):
             "is_premium_only",
             "release_date",
         ]
+
+    def create(self, validated_data):
+        return Track.objects.create(**validated_data)
+    

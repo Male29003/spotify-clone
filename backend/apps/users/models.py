@@ -47,10 +47,12 @@ class User(AbstractBaseUser, PermissionsMixin):
     )
     username = models.CharField(
         unique=True,
+        unique=True,
         max_length=150,
         blank=True
     )
     phone = models.CharField(max_length=15, unique=True)
+    profile_picture = models.ImageField(
     profile_picture = models.ImageField(
         upload_to=get_path_upload_image_user,
         validators=[validate_image_size],
@@ -61,7 +63,8 @@ class User(AbstractBaseUser, PermissionsMixin):
         max_length=30,
         blank=True,
     )
-    password = models.CharField(max_length=128)
+    
+    #password = models.CharField(max_length=128)
 
     country = CountryField(
         blank_label="Select a country",
@@ -88,12 +91,27 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 
     # User permissions
+    followers = models.ManyToManyField(
+        'self', 
+        symmetrical=False, 
+        related_name='following', 
+        blank=True
+    )
+
+
+    # User permissions
     is_premium = models.BooleanField(default=False)
 
     is_active = models.BooleanField(default=True)
 
     date_joined = models.DateTimeField(default=timezone.now)
     
+    # Check if user is staff
+    is_staff = models.BooleanField(
+        _("staff status"),
+        default=False,
+        help_text=_("Designates whether the user can log into this admin site."),
+    )
     
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["username"]
@@ -111,6 +129,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     def save(self, *args, **kwargs):
         username_email = self.email.split("@", 1)
         if self.username is None or self.username == "":
+            self.username = username_email[0]
             self.username = username_email[0]
         super().save(*args, **kwargs)
 
@@ -143,10 +162,9 @@ class User(AbstractBaseUser, PermissionsMixin):
     def get_profile(self):
         """ Return profile user or artist """
         if self.is_artist:
-            # If you are an artist, return artist
-            return self.artist
-        # else Default return a normal user
+            return getattr(self, 'artist_profile', self)
         return self
 
+    @property
     def is_artist(self):
         return self.type == TYPE_PROFILE.artist
