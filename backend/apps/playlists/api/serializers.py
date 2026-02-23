@@ -16,6 +16,7 @@ class PlaylistSerializer(serializers.ModelSerializer):
             "tracks",
             "title",
             "description",
+            "tracks_count",
             "slug",
             "image",
             "is_private"

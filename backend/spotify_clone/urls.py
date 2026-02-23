@@ -18,27 +18,30 @@ from django.contrib import admin
 from django.urls import path, include
 from django.contrib import admin
 from drf_spectacular.views import SpectacularSwaggerView, SpectacularAPIView
+from django.views.generic import RedirectView
 
 
 urlpatterns = [
+    path('', RedirectView.as_view(url='api/v1/docs/'), name='index'),
+
     path('admin/', admin.site.urls),
     # users URLs here as needed
-    path('api/users', include("apps.users.api.urls"), name="users"),
+    path('api/v1/users/', include("apps.users.api.urls"), name="users"),
     # albums URLs here as needed
-    path('api/albums', include("apps.albums.api.urls"), name="albums"),
+    path('api/v1/albums/', include("apps.albums.api.urls"), name="albums"),
     # artists URLs here as needed
-    path('api/artists', include("apps.artists.api.urls"), name="artists"),
+    path('api/v1/artists/', include("apps.artists.api.urls"), name="artists"),
     # genres URLs here as needed
-    path('api/genres', include("apps.genres.api.urls"), name="genres"),
+    path('api/v1/genres/', include("apps.genres.api.urls"), name="genres"),
     # usersmusic URLs here as needed
-    path('api/music', include("apps.music.api.urls"), name="music"),
+    path('api/v1/music/', include("apps.music.api.urls"), name="music"),
     # playlists URLs here as needed
-    path('api/playlists', include("apps.playlists.api.urls"), name="playlists"),
+    path('api/v1/playlists/', include("apps.playlists.api.urls"), name="playlists"),
     # subscription URLs here as needed
-    path('api/subscription', include("apps.subscription.api.urls"), name="subscription"),
 ]
 
 urlpatterns += [
-    path("schema/", SpectacularAPIView.as_view(), name="schema"),
-    path("", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui")
+    path("api/v1/schema/", SpectacularAPIView.as_view(), name="schema"),
+    # Để trang chủ là Swagger luôn cũng được, hoặc đổi thành 'api/v1/docs/'
+    path("api/v1/docs/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
 ]

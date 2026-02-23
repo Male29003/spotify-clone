@@ -63,7 +63,6 @@ INSTALLED_APPS = [
     'apps.music',
     'apps.users',
     'apps.subscription',
-    'apps.subscription',
 ]
 
 MIDDLEWARE = [

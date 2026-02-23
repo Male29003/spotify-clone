@@ -64,7 +64,6 @@ class ShortTrackSerializer(TrackSerializer):
         ]
 
 class CreateNewTrackSerializer(serializers.ModelSerializer):
-class CreateNewTrackSerializer(serializers.ModelSerializer):
     album = serializers.PrimaryKeyRelatedField(
         queryset=apps.get_model('albums', 'Album').objects.all(),
         required=False

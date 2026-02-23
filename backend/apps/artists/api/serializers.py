@@ -19,24 +19,25 @@ class ArtistSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "user",
-            "username",
-            "first_name",
-            "last_name",
             "image",
             "slug",
             "listeners",
             "is_verify",
+            "track_slug",
         ]
         extra_kwargs = {
             "is_verify": {"read_only": True}
         }
+
+    def get_track_slug(self, obj):
+        # Trả về danh sách slug các bài hát của artist này
+        return obj.tracks.all().values_list('slug', flat=True)
 
 class ShortArtistSerializer(ArtistSerializer):
     class Meta:
         model = Artist
         fields = [
             "id",
-            "username",
             "slug",
             "image",
             "is_verify",
@@ -51,7 +52,6 @@ class UpdateArtistSerializer(serializers.ModelSerializer):
     class Meta:
         model = Artist
         fields = [
-            "username",
             "slug",
             "is_verify",
         ]

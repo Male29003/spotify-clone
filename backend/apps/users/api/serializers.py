@@ -43,13 +43,13 @@ class LoginSerializer(serializers.ModelSerializer):
         read_only_fields = ['email']
 
 class UserSerializer(CountryFieldMixin, serializers.ModelSerializer):
-    """ Serializers display all details of user even you are a normal user or an artist"""
     followers_count = serializers.IntegerField(source='followers.count', read_only=True)
     following_count = serializers.IntegerField(source='following.count', read_only=True)
     type = serializers.CharField(source="get_type_display", read_only=True)
     gender = serializers.CharField(source="get_gender_display", read_only=True)
     artist_slug = serializers.CharField(source="artist.slug", read_only=True)
     playlists_count = serializers.IntegerField(source="playlists.count", read_only=True)
+    subscription_plan = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -62,13 +62,21 @@ class UserSerializer(CountryFieldMixin, serializers.ModelSerializer):
             'country',
             'gender',
             'type',
+            "artist_slug",
+            "subscription_plan",
             'followers_count',
             'following_count',
-            'subscription_plan',
+            "playlists_count",
             'is_active',
             'is_premium',
         ]
         read_only_fields = ["email", "type", "is_premium"]
+    
+    def get_subscription_plan(self, obj):
+        if obj.is_premium:
+            sub = getattr(obj, 'subscription', None)
+            return sub.plan.name if sub else "Premium"
+        return "Free"
 
 class ShortUserDetailSerializer(UserSerializer):
     class Meta():
