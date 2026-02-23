@@ -28,10 +28,12 @@ class User(AbstractBaseUser, PermissionsMixin):
     )
     username = models.CharField(
         unique=True,
+        unique=True,
         max_length=150,
         blank=True
     )
     phone = models.CharField(max_length=15, unique=True)
+    profile_picture = models.ImageField(
     profile_picture = models.ImageField(
         upload_to=get_path_upload_image_user,
         validators=[validate_image_size],
