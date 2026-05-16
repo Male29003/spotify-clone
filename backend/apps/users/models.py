@@ -2,9 +2,10 @@ from django.db import models
 from model_utils import Choices
 from django.utils import timezone
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
-from ..core.services import get_path_upload_image_user, validate_image_size
+from ..core.services import get_path_upload_image_user, validate_image_size, validate_image_extension
 from django.utils.translation import gettext_lazy as _
 from .managers import CustomUserManager
+from ..core.models import BaseModel, BlockableMixin
 from django_countries.fields import CountryField
 
 GENDER_CHOICES = Choices(
@@ -20,7 +21,7 @@ TYPE_PROFILE = Choices(
 )
 
 # Create your models here.
-class User(AbstractBaseUser, PermissionsMixin):
+class User(AbstractBaseUser, PermissionsMixin, BlockableMixin):
     email = models.EmailField(
         unique=True,
         db_index=True,
@@ -28,25 +29,32 @@ class User(AbstractBaseUser, PermissionsMixin):
     )
     username = models.CharField(
         unique=True,
-        unique=True,
         max_length=150,
         blank=True
     )
-    phone = models.CharField(max_length=15, unique=True)
+    phone = models.CharField(
+        max_length=20, 
+        unique=True, 
+        null=True, 
+        blank=True
+    )
     profile_picture = models.ImageField(
-    profile_picture = models.ImageField(
+        max_length=500,
         upload_to=get_path_upload_image_user,
-        validators=[validate_image_size],
-        default='default/profile_picture.png',
+        validators=[validate_image_size, validate_image_extension],
+        default='default/profile.jpeg',
         blank=True,
+        null=True,
     )
     first_name = models.CharField(
+        max_length=70,
+        blank=True,
+    )
+    last_name = models.CharField(
         max_length=30,
         blank=True,
     )
     
-    #password = models.CharField(max_length=128)
-
     country = CountryField(
         blank_label="Select a country",
         default="VN",
@@ -56,7 +64,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     gender = models.CharField(
         max_length=20, 
         choices=GENDER_CHOICES, 
-        null=True
+        null=True,
+        blank=True
     )
     type = models.CharField(
         max_length=10,
@@ -69,30 +78,24 @@ class User(AbstractBaseUser, PermissionsMixin):
         related_name='following', 
         blank=True
     )
-
-
-    # User permissions
-    followers = models.ManyToManyField(
-        'self', 
-        symmetrical=False, 
-        related_name='following', 
-        blank=True
-    )
-
-
     # User permissions
     is_premium = models.BooleanField(default=False)
-
-    is_active = models.BooleanField(default=True)
-
-    date_joined = models.DateTimeField(default=timezone.now)
-    
     # Check if user is staff
     is_staff = models.BooleanField(
         _("staff status"),
         default=False,
         help_text=_("Designates whether the user can log into this admin site."),
     )
+    # role cho staff
+    role_permissions = models.JSONField(
+        default=list, 
+        blank=True, 
+        null=True
+    )
+
+    # Dành cho admin block user nhé
+    is_active = models.BooleanField(default=True)
+    date_joined = models.DateTimeField(default=timezone.now)
     
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["username"]
@@ -111,7 +114,6 @@ class User(AbstractBaseUser, PermissionsMixin):
         username_email = self.email.split("@", 1)
         if self.username is None or self.username == "":
             self.username = username_email[0]
-            self.username = username_email[0]
         super().save(*args, **kwargs)
 
     def follow(self, user):
@@ -128,14 +130,15 @@ class User(AbstractBaseUser, PermissionsMixin):
         return self.followers.filter(id=user_id).exists()
     
     @property
-    def followers_count(self):
+    def get_followers_count(self):
         return self.followers.count()
     @property
-    def following_count(self):
+    def get_following_count(self):
         return self.following.count()
     
     def get_followers(self):
         return self.followers.all()
+    
     def get_following(self):
         return self.following.all()
     
@@ -149,3 +152,28 @@ class User(AbstractBaseUser, PermissionsMixin):
     @property
     def is_artist(self):
         return self.type == TYPE_PROFILE.artist
+    
+    @property
+    def full_name(self):
+        return self.first_name + " " + self.last_name
+
+class Notification(BaseModel):
+    user = models.ForeignKey(
+        User, 
+        on_delete=models.CASCADE, 
+        related_name='notifications'
+    )
+    title = models.CharField(max_length=255)
+    message = models.TextField()
+    is_read = models.BooleanField(default=False)
+    metadata = models.JSONField(
+        default=dict, 
+        blank=True, 
+        null=True
+    )
+    
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"To {self.user.username}: {self.title}"

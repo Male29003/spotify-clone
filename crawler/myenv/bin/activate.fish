@@ -29,7 +29,7 @@ end
 # unset irrelevant variables
 deactivate nondestructive
 
-set -gx VIRTUAL_ENV /home/nkn/clone_spotify/crawler/myenv
+set -gx VIRTUAL_ENV /home/nkn/scp/clone_spotify/crawler/myenv
 
 set -gx _OLD_VIRTUAL_PATH $PATH
 set -gx PATH "$VIRTUAL_ENV/"bin $PATH

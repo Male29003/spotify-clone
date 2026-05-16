@@ -1,6 +1,5 @@
 from django.contrib import admin
 from .models import Artist, FavouriteArtist, ArtistVerificationRequest
-from .models import Artist, FavouriteArtist, ArtistVerificationRequest
 
 # Register your models here.
 @admin.register(Artist)
@@ -20,6 +19,6 @@ class FavoriteArtistAdmin(admin.ModelAdmin):
 
 @admin.register(ArtistVerificationRequest)
 class ArtistVerificationRequestAdmin(admin.ModelAdmin):
-    list_display = ["id", "artist", "is_processed", "created_at", "updated_at"]
+    list_display = ["id", "artist", "status", "identity_document", "social_link", "contact_phone", "created_at", "updated_at"]
     list_display_links = ["id", "artist"]
 

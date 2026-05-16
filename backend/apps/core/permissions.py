@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from rest_framework import permissions
 from ..users.models import TYPE_PROFILE
+from ..artists.models import Artist
 
 User = get_user_model()
 """ Check if user has which permissions:
@@ -56,13 +57,9 @@ class ArtistPermission(permissions.BasePermission):
         return False
     
     def has_object_permission(self, request, view, obj):
-        if request.method in permissions.SAFE_METHODS:
-            return True
-        if hasattr(obj, 'user') and obj.user == request.user:
-            return True
-        if hasattr(obj, 'artist') and obj.artist.user == request.user:
-            return True
-        return False
+        # Check nếu obj là chính Artist hoặc các model có link tới Artist (Track, Release)
+        artist = getattr(obj, 'artist', obj if isinstance(obj, Artist) else None)
+        return artist and artist.user == request.user
     
 # 3
 class PremiumUserPermission(permissions.BasePermission):
@@ -74,6 +71,4 @@ class PremiumUserPermission(permissions.BasePermission):
 # 4
 class AdminPermission(permissions.BasePermission):
     def has_permission(self, request, view):
-        if request.method in permissions.SAFE_METHODS:
-            return True
         return request.user.is_authenticated and request.user.is_staff

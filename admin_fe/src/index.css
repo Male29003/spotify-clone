@@ -1,0 +1,145 @@
+@import "tailwindcss";
+
+/* 1. KHAI BÁO BIẾN MÀU THEO THEME */
+:root {
+  --theme-base: #f0f2f5;
+  --theme-dark: #000000;
+  --theme-panel: #ffffff;
+  --theme-card: #f8f9fa;
+  --theme-search: #e4e6eb;
+  --theme-hover: #e0e0e0;
+  --theme-border: #dcdcdc;
+  
+  --theme-text-main: #050505;
+  --theme-text-sub: #65676b;
+  --theme-text-dark: #ffffff;
+  --theme-highlight: #1db954; 
+  --theme-progress: #cccccc;
+
+  /* --- SEMANTIC COLORS --- */
+  --theme-error: #ef4444;       /* red-500 */
+  --theme-warning: #f97316;     /* orange-500 */
+  --theme-info: #3b82f6;        /* blue-500 */
+  --theme-info-dark: #2563eb;   /* blue-600 */
+
+  /* --- ACCENT COLORS --- */
+  --theme-accent-purple: #a855f7;      /* purple-500 */
+  --theme-accent-purple-dark: #9333ea; /* purple-600 */
+  --theme-accent-pink: #ec4899;        /* pink-500 */
+}
+
+.dark {
+  /* --- DARK MODE (Spotify Chuẩn) --- */
+  --theme-base: #000000;
+  --theme-dark: #ffffff;
+  --theme-panel: #121212;
+  --theme-card: #181818;
+  --theme-search: #242424;
+  --theme-hover: #282828;
+  --theme-border: #333333;
+  
+  --theme-text-main: #ffffff;
+  --theme-text-sub: #b3b3b3;
+  --theme-text-dark: #000000;
+  --theme-highlight: #1db954;
+  --theme-progress: #4d4d4d;
+
+  --theme-error: #ef4444;
+  --theme-warning: #f97316;
+  --theme-info: #3b82f6;
+  --theme-info-dark: #2563eb;
+
+  --theme-accent-purple: #a855f7;
+  --theme-accent-purple-dark: #9333ea;
+  --theme-accent-pink: #ec4899;
+}
+
+/* 2. ĐĂNG KÝ BIẾN CHO TAILWIND */
+@theme {
+  --color-base: var(--theme-base);
+  --color-dark: var(--theme-dark);
+  --color-panel: var(--theme-panel);
+  --color-card: var(--theme-card);
+  --color-search: var(--theme-search);
+  --color-hover: var(--theme-hover);
+  --color-border: var(--theme-border);
+  
+  --color-text-main: var(--theme-text-main);
+  --color-text-sub: var(--theme-text-sub);
+  --color-text-dark: var(--theme-text-dark);
+  --color-highlight: var(--theme-highlight);
+  --color-progress: var(--theme-progress);
+
+  /* Semantic */
+  --color-error: var(--theme-error);
+  --color-warning: var(--theme-warning);
+  --color-info: var(--theme-info);
+  --color-info-dark: var(--theme-info-dark);
+
+  /* Accent */
+  --color-accent-purple: var(--theme-accent-purple);
+  --color-accent-purple-dark: var(--theme-accent-purple-dark);
+  --color-accent-pink: var(--theme-accent-pink);
+
+  --font-inter: "Inter", sans-serif;
+}
+/* 3. SET BACKGROUND CHUẨN */
+html, body, #root {
+  background-color: var(--theme-base);
+  color: var(--theme-text-main);
+  font-family: var(--font-inter);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(150, 150, 150, 0.3); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(150, 150, 150, 0.5); }
+.custom-scrollbar::-webkit-scrollbar { display: none; }
+
+@keyframes music-eq {
+  0%, 100% { transform: scaleY(0.2); }
+  50% { transform: scaleY(1); }
+}
+
+.animate-music-bar-1 { 
+  animation: music-eq 1s ease-in-out infinite; 
+}
+.animate-music-bar-2 { 
+  animation: music-eq 0.8s ease-in-out infinite; 
+}
+.animate-music-bar-3 { 
+  animation: music-eq 1.2s ease-in-out infinite; 
+}
+.animate-music-bar-4 { 
+  animation: music-eq 0.9s ease-in-out infinite; 
+}
+.animation-paused { 
+  animation-play-state: paused !important; 
+}
+
+@keyframes shine-sweep {
+  0% { left: -100%; }
+  100% { left: 125%; }
+}
+
+.btn-shiny-sweep:hover .shine-layer {
+  animation: shine-sweep 0.8s ease-in-out;
+}
+
+.btn-neon-glow {
+  transition: all 0.3s ease-out;
+}
+
+.btn-neon-glow:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 25px var(--theme-highlight);
+}
+
+.btn-ripple-expand .ripple-layer {
+  transition: transform 0.3s ease-out, border-radius 0.3s ease-out;
+}
+.btn-ripple-expand:hover .ripple-layer {
+  transform: scale(1.5);
+  border-radius: 0;
+}

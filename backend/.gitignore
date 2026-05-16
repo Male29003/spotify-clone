@@ -116,7 +116,10 @@ media/
 
 gather_codes.py
 codes
+database
 
 myenv
 venv/
 .env/
+*.json
+helper/

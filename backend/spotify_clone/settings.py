@@ -10,52 +10,118 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
+import os
+import dj_database_url
 from pathlib import Path
 from dotenv import load_dotenv
-from dotenv import load_dotenv
-from dotenv import load_dotenv
-import os
 from datetime import timedelta
-from datetime import timedelta
-from datetime import timedelta
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
 
-load_dotenv()
+BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv()
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DEBUG', 'True') == 'True' 
 
-CORS_ALLOWED_ORIGINS = [
-    'http://localhost:5713',
+SECRET_KEY = os.getenv('SECRET_KEY', 'chuoi-tam-thoi-de-khong-bi-loi-khi-dev')
+
+# Nhận list host từ .env (phân cách bằng dấu phẩy)
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '127.0.0.1,localhost').split(',')
+
+# Nhận list CORS từ .env
+CORS_ALLOWED_ORIGINS = os.getenv('CORS_ALLOWED_ORIGINS', 'http://localhost:5173,http://localhost:3000').split(',')
+CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
 ]
 CORS_URLS_REGEX = r"^/api/.*$"
-SECRET_KEY = os.getenv('SECRET_KEY', 'chuoi-tam-thoi-de-khong-bi-loi-khi-dev')
-SECRET_KEY = os.getenv('SECRET_KEY', 'chuoi-tam-thoi-de-khong-bi-loi-khi-dev')
+
+# ==========================================
+# 2. CẤU HÌNH DATABASE & REDIS DỰA VÀO ENV
+# ==========================================
+# Nếu có biến DATABASE_URL (Supabase cấp), nó sẽ xài. Nếu không có, nó xài cấu hình PostgreSQL local.
+DATABASES = {
+    'default': dj_database_url.config(
+        default=os.getenv('DATABASE_URL', 
+            f"postgres://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}@{os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}")
+    )
+}
+
+# Lấy URL của Redis từ Upstash/Render. Nếu ở Local thì xài localhost
+REDIS_URL = os.getenv('REDIS_URL', 'redis://127.0.0.1:6379')
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [REDIS_URL],
+        },
+    },
+}
+
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": f"{REDIS_URL}/1",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    }
+}
+# ==========================================
+# 3. CẤU HÌNH BẢO MẬT COOKIE & HTTPS
+# ==========================================
+# Nếu là Production (DEBUG = False) thì ép Cookie phải chạy qua HTTPS
+IS_PRODUCTION = not DEBUG
+
+SESSION_COOKIE_SAMESITE = 'None' if IS_PRODUCTION else 'Lax'
+CSRF_COOKIE_SAMESITE = 'None' if IS_PRODUCTION else 'Lax'
+SESSION_COOKIE_SECURE = IS_PRODUCTION
+CSRF_COOKIE_SECURE = IS_PRODUCTION
+
+REST_AUTH = {
+    'USE_JWT': True,
+    'JWT_AUTH_COOKIE': 'access',
+    'JWT_AUTH_REFRESH_COOKIE': 'refresh',
+    'JWT_AUTH_HTTPONLY': True,
+    'JWT_AUTH_SECURE': IS_PRODUCTION,
+    'JWT_AUTH_SAMESITE': 'None' if IS_PRODUCTION else 'Lax',
+}
 
 AUTH_USER_MODEL = 'users.User'
+STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY', 'sk_test_...')
 
 DOMAIN = os.getenv('DOMAIN', 'localhost:8000')
 # Application definitions
 # Application definitions
 
 INSTALLED_APPS = [
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_cleanup.apps.CleanupConfig',
     # Django REST framework
     'rest_framework',
     'rest_framework_simplejwt',
     'drf_spectacular',
-    # Other apps - API albums, artists, playlists, music, users
-    'apps.albums',
+    'corsheaders',
+    # Other apps - API releases, artists, playlists, music, users
+    'apps.releases',
     'apps.artists',
     'apps.core',
     'apps.genres',
@@ -63,11 +129,16 @@ INSTALLED_APPS = [
     'apps.music',
     'apps.users',
     'apps.subscription',
-    'apps.subscription',
+    'apps.analytics',
+
+    'channels',
+
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -95,37 +166,40 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'spotify_clone.wsgi.application'
-
+ASGI_APPLICATION = 'spotify_clone.asgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
+# Cấu hình gửi mail qua SMTP của Gmail
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
 
-
-
-
-load_dotenv()
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',  # Use 'django.db.backends.postgresql' for PostgreSQL
-        'NAME': os.getenv('DB_NAME', 'spotify_clone'),  # Database name
-        'USER': os.getenv('DB_USER', 'postgres'),  # Database user
-        'PASSWORD': os.getenv('DB_PASSWORD', 'iamuserroot'),  # Database password
-        'USER': os.getenv('DB_USER', 'postgres'),  # Database user
-        'PASSWORD': os.getenv('DB_PASSWORD', 'iamuserroot'),  # Database password
-        'HOST': os.getenv('DB_HOST', 'localhost'),  # Database host
-        'PORT': os.getenv('DB_PORT', '5432'),  # Database port
-    }
-}
+# Đọc từ file .env
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+# Optional: Tên người gửi mặc định (Ví dụ: "Spotify Clone Admin <spotify.clone@gmail.com>")
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'apps.users.authentication.CookieJWTAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
     ],
-    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema'
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle', # Dành cho khách chưa login
+        'rest_framework.throttling.UserRateThrottle'  # Dành cho user đã login
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '100/min',   # Khách lạ chỉ được gọi 10 lần/phút (Tránh spam API Login/Register)
+        'user': '500/min'   # User thật thì cho gọi 100 lần/phút
+    },
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'DEFAULT_PAGINATION_CLASS': 'apps.core.pagination.CustomPagination'
 }
 
 SPECTACULAR_SETTINGS = {
@@ -139,13 +213,14 @@ SPECTACULAR_SETTINGS = {
 
 SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('Bearer',),
-    'ACCESS_TOKEN_LIFETIME': timedelta(days=5),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
     'ROTATE_REFRESH_TOKENS': True,
     'USER_ID_FIELD': 'id',
     'USER_ID_CLAIM': 'user_id',
     'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
     'AUTH_COOKIE': 'access',
+    'UPDATE_LAST_LOGIN': True,
 }
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
@@ -165,6 +240,8 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+MUSIC_ENCRYPTION_KEY = os.getenv('MUSIC_ENCRYPTION_KEY')
+STRIPE_WEBHOOK_SECRET = os.getenv('STRIPE_WEBHOOK_SECRET')
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 LANGUAGE_CODE = 'en-us'
@@ -174,12 +251,24 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
-
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_DIRS = [BASE_DIR / 'static']
 
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_ROOT = BASE_DIR / ''
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
+AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME')
+AWS_S3_ENDPOINT_URL = os.getenv('AWS_S3_ENDPOINT_URL')
+AWS_S3_CUSTOM_DOMAIN = os.getenv('AWS_S3_CUSTOM_DOMAIN')
+AWS_S3_REGION_NAME = 'auto'
+
+# Chỉ định Django dùng S3 cho Media
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+MEDIA_URL = f'{AWS_S3_CUSTOM_DOMAIN}/'
