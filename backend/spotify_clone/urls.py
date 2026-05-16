@@ -16,9 +16,39 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.contrib import admin
+from drf_spectacular.views import SpectacularSwaggerView, SpectacularAPIView
+from django.views.generic import RedirectView
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
-    #path('admin/', admin.site.urls),
-    path('', include('api.urls')),  # Include the music app URLs
-    # Add other app URLs here as needed
+    path('', RedirectView.as_view(url='api/v1/docs/'), name='index'),
+
+    path('admin/', admin.site.urls),
+    # users URLs here as needed
+    path('api/v1/users/', include("apps.users.urls"), name="users"),
+    # releases URLs here as needed
+    path('api/v1/releases/', include("apps.releases.urls"), name="releases"),
+    # artists URLs here as needed
+    path('api/v1/artists/', include("apps.artists.urls"), name="artists"),
+    # genres URLs here as needed
+    path('api/v1/genres/', include("apps.genres.urls"), name="genres"),
+    # usersmusic URLs here as needed
+    path('api/v1/music/', include("apps.music.urls"), name="music"),
+    # playlists URLs here as needed
+    path('api/v1/playlists/', include("apps.playlists.urls"), name="playlists"),
+    path('api/v1/analytics/', include("apps.analytics.urls"), name="analytics"),
+    # subscription URLs here as needed
+    path('api/v1/subscription/', include("apps.subscription.urls"), name="subscription"),
+
 ]
+
+urlpatterns += [
+    path("api/v1/schema/", SpectacularAPIView.as_view(), name="schema"),
+    # Để trang chủ là Swagger luôn cũng được, hoặc đổi thành 'api/v1/docs/'
+    path("api/v1/docs/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
+]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -1,0 +1,691 @@
+import io
+import datetime,traceback
+import os
+import requests
+import math
+from django.conf import settings
+from rest_framework import generics, serializers, status, permissions, filters, views
+from django_filters.rest_framework import DjangoFilterBackend
+from apps.core.permissions import AdminPermission, ArtistPermission, PremiumUserPermission
+from django.core.files.base import ContentFile
+from django.shortcuts import get_object_or_404
+from mutagen import File as MutagenFile
+from rest_framework.response import Response
+from django.db.models import F, Q, Count
+from django.utils import timezone
+from datetime import timedelta
+from django.core.cache import cache
+from pydub import AudioSegment
+from django.http import Http404
+from django.http import StreamingHttpResponse
+from cryptography.fernet import Fernet
+from rest_framework.renderers import BaseRenderer
+from django_redis import get_redis_connection
+from ..core.notification import send_system_notification, send_system_event
+from apps.core.choices import BlockReason
+
+from . import serializers
+from apps.analytics.models import StreamHistory, DownloadHistory
+from .models import Track
+from apps.releases.models import Release
+from rest_framework.views import APIView
+from apps.artists.models import FavouriteArtist
+
+# ==========================================================================================
+# -------------------------------- Chức năng cho Listener --------------------------------
+# ==========================================================================================
+# Kết nối này sẽ tự động dùng cấu hình từ settings.py của ông
+redis_conn = get_redis_connection("default")
+CHUNK_SIZE = 256 * 1024
+# nghe nhạcclass MusicStreamView(APIView):
+class PlainTextRenderer(BaseRenderer):
+    media_type = 'audio/mpeg'
+    format = 'mp3'
+    def render(self, data, accepted_media_type=None, encodings=None):
+        return data
+class MusicStreamView(APIView):
+    renderer_classes = [PlainTextRenderer]
+    permission_classes = [permissions.AllowAny]
+
+    def _background_cache_full_track(self, track_id, file_url):
+        """Hàm chạy ngầm: Tải, giải mã và lưu vào Redis"""
+        cache_key = f"track_decrypt_{track_id}"
+        # Kiểm tra lại lần nữa để tránh nhiều thread cùng làm 1 việc
+        if not cache.get(cache_key):
+            try:
+                print(f"🔄 [Background] Đang nạp bài {track_id} vào Redis...")
+                response = requests.get(file_url)
+                fernet = Fernet(os.getenv('MUSIC_ENCRYPTION_KEY').encode())
+                decrypted_data = fernet.decrypt(response.content)
+                # Lưu vào Redis (24h)
+                cache.set(cache_key, decrypted_data, timeout=86400)
+                print(f"✅ [Background] Bài {track_id} đã sẵn sàng trong RAM.")
+            except Exception as e:
+                print(f"❌ [Background] Lỗi: {e}")
+
+    def get(self, request, short_id):
+        track = get_object_or_404(Track, short_id=short_id)
+        is_premium_user = False
+
+        if request.user.is_authenticated:
+            is_premium_user = PremiumUserPermission().has_permission(request, self)
+
+        # 1. XỬ LÝ PREVIEW (Dành cho user thường hoặc bài Premium)
+        if track.is_premium_only and not is_premium_user:
+            try:
+                preview_res = requests.get(track.preview_file.url, stream=True, timeout=10)
+                response = StreamingHttpResponse(
+                    preview_res.iter_content(chunk_size=CHUNK_SIZE), 
+                    content_type="audio/mpeg"
+                )
+                response['Accept-Ranges'] = 'bytes'
+                return response
+            except Exception as e:
+                print(f"Lỗi stream file preview: {e}")
+                return Response({"error": "Lỗi kết nối âm thanh"}, status=503)
+        # 2. XỬ LÝ FULL TRACK (Cơ chế Map cho Premium/Bài free)
+        # Lấy size file để tính số miếng (Nên lưu file_size vào DB để tối ưu)
+        file_size = track.file_size or int(requests.head(track.file_url.url).headers.get('Content-Length', 0))
+        total_chunks = math.ceil(file_size / CHUNK_SIZE)
+
+        # Kết nối Redis (Dùng cấu hình từ settings.py, tự thích ứng khi lên Host)
+        redis_conn = get_redis_connection("default")
+        
+        chunk_hash_key = f"track:map:data:{track.id}"
+        bitmap_key = f"track:map:bits:{track.id}"
+
+        def map_generator():
+            fernet = Fernet(os.getenv('MUSIC_ENCRYPTION_KEY').encode())
+            
+            # KIỂM TRA XEM MAP ĐÃ CÓ TRÊN RAM CHƯA?
+            # Chỉ cần check bit 0 là biết file đã được cache hay chưa
+            if not redis_conn.getbit(bitmap_key, 0):
+                print(f"Đang kéo full bài {track.short_id} về để nạp Map...")
+                try:
+                    r2_res = requests.get(track.file_url.url, timeout=15)
+                    raw_data = r2_res.content
+                    
+                    try:
+                        # Thử giải mã
+                        processed_data = fernet.decrypt(raw_data)
+                        print("✅ Giải mã thành công!")
+                    except Exception:
+                        # NẾU GIẢI MÃ LỖI -> ĐÂY LÀ FILE MP3 GỐC, KHÔNG CẦN GIẢI MÃ
+                        print("⚠️ File chưa mã hóa (gốc), bỏ qua bước giải mã!")
+                        processed_data = raw_data
+
+                    # BĂM NHỎ NGAY TRÊN RAM VÀ NHÉT VÀO MAP REDIS
+                    total_bytes = len(processed_data)
+                    calculated_chunks = math.ceil(total_bytes / CHUNK_SIZE)
+
+                    # Dùng Pipeline để insert hàng loạt vào Redis (Cực kỳ nhanh)
+                    pipe = redis_conn.pipeline()
+                    for j in range(calculated_chunks):
+                        start = j * CHUNK_SIZE
+                        end = (j + 1) * CHUNK_SIZE
+                        piece = processed_data[start:end]
+                        
+                        pipe.hset(chunk_hash_key, str(j), piece)
+                        pipe.setbit(bitmap_key, j, 1)
+                    
+                    # Set TTL 1 ngày
+                    pipe.expire(chunk_hash_key, 86400)
+                    pipe.expire(bitmap_key, 86400)
+                    pipe.execute() # Thực thi lưu vào Redis 1 lần duy nhất
+                    
+                except Exception as e:
+                    print(f"Lỗi khi tải hoặc lưu Redis: {e}")
+                    # Fallback an toàn: Trả luôn cục raw_data nếu Redis sập
+                    traceback.print_exc()
+                    yield raw_data
+                    return
+
+            # NẾU ĐÃ CÓ Ở REDIS (Hoặc vừa nạp xong) -> LẤY RA PHÁT NHẠC
+            # Phải đếm lại số lượng chunk thực tế đang có trong Hash
+            actual_total_chunks = redis_conn.hlen(chunk_hash_key)
+            
+            for i in range(actual_total_chunks):
+                chunk_data = redis_conn.hget(chunk_hash_key, str(i))
+                if chunk_data:
+                    yield chunk_data
+
+        response = StreamingHttpResponse(map_generator(), content_type="audio/mpeg")
+        response['Accept-Ranges'] = 'bytes'
+        return response
+
+# Tim2 kiem61
+class TrackListView(generics.ListAPIView):
+    serializer_class = serializers.ListenerTrackSerializer
+    permission_classes = [permissions.AllowAny]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ['genre', 'is_premium_only']
+    search_fields = ['title', 'artist__stage_name']
+    ordering_fields = ['listens', '-created_at']
+
+    def get_queryset(self):
+        return Track.objects.filter(
+            is_active=True,
+            is_blocked=False,
+            artist__is_active=True, # Nghệ sĩ đang hoạt động
+            artist__is_blocked=False, # Nghệ sĩ không bị block
+            release__is_published=True,
+            release__is_active=True, # Release không bị xóa
+        ).select_related('artist', 'genre', 'release')
+
+#Lấy chi tiết track
+class TrackDetailView(generics.RetrieveAPIView):
+    serializer_class = serializers.ListenerDetailTrackSerializer
+    permission_classes = [permissions.AllowAny]
+    ordering_fields = ['order_index']
+    lookup_field = 'short_id'
+
+    def get_queryset(self):
+        return Track.objects.filter(
+            is_active=True, 
+            is_blocked=False,
+            artist__is_active=True, # Nghệ sĩ đang hoạt động
+            artist__is_blocked=False, # Nghệ sĩ không bị block
+            release__is_published=True, # Release không bị xóa
+            release__is_blocked=False
+        )
+
+# 3. API: Related Tracks (Gợi ý Bài hát)
+class RelatedTrackListView(generics.ListAPIView):
+    serializer_class = serializers.ShortTrackSerializer
+    permission_classes = [permissions.AllowAny]
+
+    def get_queryset(self):
+        short_id = self.kwargs.get('short_id')
+        current_track = generics.get_object_or_404(Track, short_id=short_id)
+        
+        # Lấy bài hát cùng nghệ sĩ nhưng khác release (album)
+        queryset = Track.objects.filter(
+            artist=current_track.artist,
+            is_active=True,
+            is_blocked=False,
+            release__is_published=True
+        ).exclude(id=current_track.id).order_by('-view_count')[:10] # Ưu tiên bài nhiều view
+
+        if queryset.count() < 10:
+            needed = 10 - queryset.count()
+            fallback = Track.objects.filter(
+                is_active=True, is_blocked=False, release__is_published=True
+            ).exclude(id=current_track.id).exclude(id__in=queryset.values_list('id', flat=True)).order_by('?')[:needed]
+            queryset = list(queryset) + list(fallback)
+
+        return queryset
+
+# Lấy tredning track
+class TrendingTrackListView(generics.ListAPIView):
+    serializer_class = serializers.ListenerTrackSerializer
+    permission_classes = [permissions.AllowAny]
+    pagination_class=None
+
+    def get_queryset(self):
+        return Track.objects.filter(
+            is_active=True, 
+            is_blocked=False,
+            artist__is_active=True, # Nghệ sĩ đang hoạt động
+            artist__is_blocked=False, # Nghệ sĩ không bị block
+            release__is_published=True, # Release không bị xóa
+            release__is_blocked=False
+        ).select_related('artist', 'genre', 'release')
+
+# Like và bỏ like track
+class LikedTrackToggleView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, short_id):
+        track = get_object_or_404(Track, short_id=short_id)
+        user = request.user
+
+        if track.liked_by.filter(id=user.id).exists():
+            track.liked_by.remove(user)
+            return Response({"detail": "Remove from favourite songs."}, status=status.HTTP_204_NO_CONTENT)
+        else:
+            track.liked_by.add(user)
+            return Response({"detail": "Added to favourite songs."}, status=status.HTTP_201_CREATED)
+
+# Lấy danh sách bài hát đã thích của user
+class MyLikedSongsListView(generics.ListAPIView):
+    serializer_class = serializers.ListenerTrackSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return self.request.user.liked_tracks.filter(
+            release__is_published=True,
+            release__is_blocked=False,
+            release__is_active=True,
+            artist__is_blocked=False,
+            artist__is_active=True
+        ).select_related('artist', 'release')
+    
+# Thêm lượt nghe
+class RecordListeningView(APIView):
+    permission_classes = [permissions.AllowAny]
+    
+    def post(self, request):
+        short_id = request.data.get('short_id')
+        if not short_id:
+            return Response({"detail": "Vui lòng cung cấp short_id"}, status=status.HTTP_400_BAD_REQUEST)
+            
+        try:
+            track = Track.objects.get(short_id=short_id, is_active=True)
+            user = request.user if request.user.is_authenticated else None
+            # Check Spam (Chỉ áp dụng cho User đã đăng nhập)
+            if user:
+                one_minute_ago = timezone.now() - timedelta(minutes=1)
+                is_spam = StreamHistory.objects.filter(
+                    user=user, 
+                    track=track, 
+                    created_at__gte=one_minute_ago
+                ).exists()
+                if is_spam:
+                    return Response({"detail": "Đã ghi nhận view gần đây, đang trong thời gian chờ."}, status=status.HTTP_200_OK)
+            # Lưu vào lịch sử (Kèm theo Country để vẽ bản đồ)
+            user_country = user.country if user else None
+            StreamHistory.objects.create(
+                user=user, 
+                track=track,
+                country=user_country
+            )            
+            # Tăng view trong Redis Cache (Hàng chờ cộng dồn)
+            cache_key = f'track_views_{track.id}'
+            try:
+                # Nếu dùng django-redis, incr sẽ tự tạo key = 1 nếu chưa có (tùy config)
+                # Hoặc dùng cách an toàn này:
+                if cache.get(cache_key) is None:
+                    cache.set(cache_key, 1, timeout=None)
+                else:
+                    cache.incr(cache_key)
+            except Exception:
+                cache.set(cache_key, 1, timeout=None)
+            cache_key = f'track_views_{track.id}'
+            return Response({"detail": "Đã lưu lịch sử và nạp view vào Redis."}, status=status.HTTP_200_OK)
+        except Track.DoesNotExist:
+            return Response({"detail": "Bài hát không tồn tại."}, status=status.HTTP_404_NOT_FOUND)
+
+
+class RecommendedTrackListView(generics.ListAPIView):
+    """Thuật toán Gợi ý Nhạc cá nhân hóa đa chiều"""
+    serializer_class = serializers.ListenerTrackSerializer
+    permission_classes = [permissions.AllowAny]
+    pagination_class = None
+
+    def get_queryset(self):
+        user = self.request.user
+        base_qs = Track.objects.filter(
+            is_active=True, 
+            is_blocked=False, 
+            release__is_active=True
+        ).select_related('artist', 'genre', 'release')
+
+        # NẾU LÀ GUEST (Chưa đăng nhập) -> Trả về Top 20 bài HOT nhất
+        if not user.is_authenticated:
+            return base_qs.order_by('-listens')[:20]
+
+        #  NẾU LÀ USER ĐÃ ĐĂNG NHẬP -> Xây dựng Hồ sơ âm nhạc
+        # Lấy 3 thể loại nghe nhiều nhất
+        top_genres_qs = StreamHistory.objects.filter(user=user, track__genre__isnull=False) \
+            .values('track__genre_id') \
+            .annotate(genre_count=Count('id')) \
+            .order_by('-genre_count')[:3]
+        top_genres = [item['track__genre_id'] for item in top_genres_qs]
+
+        # Lấy ID các nghệ sĩ user đang follow
+        followed_artists = FavouriteArtist.objects.filter(user=user).values_list('artist_id', flat=True)
+        # Lấy ID các nghệ sĩ từ những bài hát user đã bấm Like
+        liked_track_artists = user.liked_tracks.values_list('artist_id', flat=True)
+
+        target_artist_ids = set(list(followed_artists) + list(liked_track_artists))
+
+        #  (Q Objects)
+        # Gợi ý bài hát nếu: Thuộc Top Thể Loại HOẶC Do Nghệ Sĩ Quan Tâm hát
+        query = Q()
+        if top_genres:
+            query |= Q(genre_id__in=top_genres)
+        if target_artist_ids:
+            query |= Q(artist_id__in=target_artist_ids)
+
+        if not query: # Nếu user mới toanh, chưa nghe/like gì
+            return base_qs.order_by('-listens')[:20]
+
+        # Lấy 50 bài hát user vừa nghe gần nhất để loại bỏ khỏi danh sách gợi ý
+        recent_listened_tracks = StreamHistory.objects.filter(user=user).order_by('-created_at') \
+            .values_list('track_id', flat=True)[:50]
+
+        # Filter + Loại trừ bài cũ + Ưu tiên bài view cao
+        recommended_tracks = base_qs.filter(query) \
+            .exclude(id__in=recent_listened_tracks) \
+            .distinct() \
+            .order_by('-listens')[:20]
+
+        # Nếu danh sách lọc ra ít quá (VD < 5 bài), chắp vá thêm nhạc Hot vào cho đủ 20
+        if recommended_tracks.count() < 5:
+            hot_tracks = base_qs.exclude(id__in=recommended_tracks.values_list('id', flat=True)).order_by('-listens')[:20]
+            return (list(recommended_tracks) + list(hot_tracks))[:20]
+
+        return recommended_tracks
+
+# Tải nhạc
+class SecureTrackDownloadView(APIView):
+    permission_classes = [PremiumUserPermission]
+
+    def get(self, request, short_id):
+        try:
+            track = Track.objects.get(short_id=short_id)
+        except Track.DoesNotExist:
+            raise Http404
+
+        # KÉO FILE MÃ HÓA BẰNG URL
+        try:
+            print(f"Đang tải file gốc của bài {track.short_id} để chuẩn bị download...")
+            r2_res = requests.get(track.file_url.url, timeout=15)
+            encrypted_data = r2_res.content
+        except Exception as e:
+            print("Lỗi lấy file:", e)
+            raise Http404("Không thể tải file từ máy chủ lưu trữ")
+
+        # gIẢI MÃ
+        try:
+            fernet = Fernet(os.getenv('MUSIC_ENCRYPTION_KEY').encode())
+            decrypted_data = fernet.decrypt(encrypted_data)
+        except Exception as e:
+            print("Lỗi giải mã file:", e)
+            return Response({"error": "Cannot decrypt file"}, status=500)
+
+        # YIELD DATA & ĐẾM LƯỢT TẢI
+        def file_iterator(data, chunk_size=8192):
+            buffer = io.BytesIO(data)
+            try:
+                while chunk := buffer.read(chunk_size):
+                    yield chunk
+                
+                # Hoàn tất 100% mới ghi nhận tải
+                history_record, created = DownloadHistory.objects.get_or_create(
+                    user=request.user, 
+                    track=track
+                )
+                if created:
+                    Track.objects.filter(pk=track.pk).update(downloads=F('downloads') + 1)
+            except Exception as e:
+                print(f"Bị ngắt kết nối khi đang tải: {e}")
+            finally:
+                buffer.close()
+
+        # 4. GỬI FILE XUỐNG BROWSER
+        filename = f"{track.title}.mp3" 
+        response = StreamingHttpResponse(file_iterator(decrypted_data))
+        response['Content-Type'] = 'audio/mpeg'
+        
+        filename_encoded = filename.encode('utf-8').decode('latin-1', 'ignore')
+        response['Content-Disposition'] = f'attachment; filename="{filename_encoded}"'
+        
+        return response
+
+
+# ==========================================================================================
+# -------------------------------- Chức năng cho Artist quản lý các bản phát hành của mình --------------------------------
+# ==========================================================================================
+class StudioTrackCreateView(generics.ListCreateAPIView):
+    serializer_class = serializers.TrackSerializer
+    permission_classes = [ArtistPermission] 
+
+    def get_queryset(self):
+        return Track.objects.filter(artist__user=self.request.user).order_by('-created_at')
+
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return serializers.CreateNewTrackSerializer
+        return serializers.TrackSerializer
+
+    def perform_create(self, serializer):
+        release_short_id = self.request.data.get('release') 
+        release = get_object_or_404(Release, short_id=release_short_id, artist__user=self.request.user)
+        
+        # Chỉ cho phép thêm nhạc nếu Release chưa được duyệt (Draft/Pending)
+        if release.is_published:
+            raise serializers.ValidationError({"detail": "Không thể thêm nhạc vào Album đã xuất bản."})
+            
+        audio_file = self.request.FILES.get('file_url')
+        
+        # 🔥 Đã sửa: Khởi tạo đúng tên biến
+        duration = None
+        preview_file_data = None 
+        
+        if audio_file:
+            try:
+                # Dùng io.BytesIO để đọc file trên RAM, tránh lỗi file path của Cloud
+                file_data = audio_file.read()
+                audio_buffer = io.BytesIO(file_data)
+                
+                # 1. Trích xuất Duration
+                audio_segment = AudioSegment.from_file(audio_buffer)
+                duration = datetime.timedelta(seconds=int(len(audio_segment) / 1000))
+                
+                # 2. Tạo Preview File (30s đầu)
+                preview_segment = audio_segment[:30 * 1000]
+                preview_buffer = io.BytesIO()
+                preview_segment.export(preview_buffer, format='mp3', bitrate='128k')
+                
+                # Bọc nó lại thành ContentFile (Đặt tên dựa theo file gốc)
+                file_name = f"preview_{audio_file.name}"
+                preview_file_data = ContentFile(preview_buffer.getvalue(), name=file_name)
+                
+                # Trả con trỏ file về 0 để model còn lấy đi mã hóa
+                audio_file.seek(0)
+            except Exception as e:
+                print(f"Lỗi xử lý file âm thanh: {e}")
+
+        # Lưu Track với đầy đủ thông tin (Model sẽ lo việc mã hóa file gốc, còn Django sẽ tự up file Preview)
+        serializer.save(
+            artist=release.artist, 
+            release=release,
+            duration=duration,
+            preview_file=preview_file_data
+        )
+
+class StudioTrackUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = serializers.TrackSerializer
+    permission_classes = [ArtistPermission] 
+    lookup_field = 'short_id'
+
+    def get_queryset(self):
+        return Track.objects.filter(artist__user=self.request.user)
+    
+    def perform_update(self, serializer):
+        track = self.get_object()
+        
+        if track.release and track.release.is_published:
+            raise serializers.ValidationError({"detail": "Không thể sửa nhạc của Release đã xuất bản."})
+            
+        serializer.save()
+    
+    def perform_destroy(self, instance):
+        if instance.release and instance.release.is_published:
+            raise serializers.ValidationError({"detail": "Không thể xóa nhạc của Release đã xuất bản."})
+            
+        instance.delete()
+
+class StudioToggleActiveTrackView(generics.RetrieveUpdateAPIView):
+    serializer_class = serializers.ShortTrackSerializer
+    permission_classes = [ArtistPermission]
+    lookup_field = 'short_id'
+
+# lấy danh sách unassigned
+class StudioGetUnassignedTracksView(generics.ListAPIView):
+    serializer_class = serializers.TrackSerializer
+    permission_classes = [ArtistPermission]
+    lookup_field = 'short_id'
+
+    def get_queryset(self):
+        return Track.objects.filter(
+            artist__user = self.request.user,
+            is_active=True,
+            release__isnull=True
+        ).order_by('-created_at')
+
+# ==========================================================================================
+# -------------------------------- Chức năng cho Admin --------------------------------
+# ==========================================================================================
+class AdminTrackListView(generics.ListAPIView):
+    serializer_class = serializers.AdminTrackSerializer
+    permission_classes = [AdminPermission]
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['title', 'artist__stage_name']
+
+    def get_queryset(self):
+        # Lọc cốt lõi: Chỉ lấy các bài hát nằm trong Release đã Publish HOẶC đã bị Block.
+        # (Tự động loại bỏ hoàn toàn các bài thuộc Draft hoặc Pending)
+        qs = Track.objects.filter(
+            Q(release__is_published=True, release__is_blocked=False) | Q(release__is_blocked=True)
+        ).select_related('artist', 'release')
+        # Lọc theo trạng thái khóa/mở khóa từ Frontend truyền xuống
+        status_filter = self.request.query_params.get('status', 'all')
+        if status_filter == 'blocked':
+            qs = qs.filter(is_blocked=True)
+        elif status_filter == 'active':
+            qs = qs.filter(is_blocked=False)
+
+        return qs.order_by('-created_at')
+
+class AdminTrackDetailView(generics.RetrieveAPIView):
+    """API xem chi tiết Track cho Admin"""
+    permission_classes = [AdminPermission]
+    serializer_class = serializers.AdminTrackSerializer
+    lookup_field = 'short_id'
+
+    def get_queryset(self):
+        # Vẫn giữ logic query của sếp
+        return Track.objects.filter(
+            Q(release__is_published=True, release__is_blocked=False) | Q(release__is_blocked=True)
+        )
+
+# 2. VIEW XỬ LÝ KHÓA 1 bài hát (PATCH)
+class AdminBlockTrackActionView(views.APIView):
+    """API Khóa/Mở khóa Track và gửi thông báo"""
+    permission_classes = [AdminPermission]
+
+    def patch(self, request, short_id):
+        # Bỏ qua QuerySet filter ở trên vì Admin có quyền khóa MỌI track nếu có ID
+        track = get_object_or_404(Track, short_id=short_id)
+        action = request.data.get('action')
+        block_reason = request.data.get('block_reason')
+        block_note = request.data.get('block_note', '').strip() or None
+        release = track.release
+
+        if action == 'block':
+            if not block_reason or int(block_reason) not in BlockReason.values:
+                return Response({"detail": "Lý do chặn không hợp lệ!"}, status=status.HTTP_400_BAD_REQUEST)
+            
+            track.is_blocked = True
+            if hasattr(track, 'block_reason'):
+                track.block_reason = int(block_reason)
+                track.block_note = block_note
+            track.save()
+
+            if track.artist and track.artist.user:
+                reason_text = dict(BlockReason.choices).get(int(block_reason), "A serious violation of our terms.")
+                send_system_notification(
+                    user=track.artist.user,
+                    title="Song Blocked",
+                    message=f"The song '{track.title}' has been blocked. Reason: {reason_text}. {block_note}",
+                    use_app=True,
+                    metadata={
+                        'type': 'release',
+                        'short_id': release.short_id, 
+                    }
+                )
+                send_system_event('CONTENT_BLOCKED', {
+                    'short_id': short_id, 
+                    'type': 'track'
+                })
+            
+            if hasattr(track, 'release') and track.release:
+                # Đếm xem trong Release này còn bài hát nào chưa bị block không?
+                active_tracks_count = release.tracks.filter(is_blocked=False).count()
+
+                if active_tracks_count == 0 and not release.is_blocked:
+                    # Nếu không còn bài nào ko bị block -> KHÓA LUÔN RELEASE
+                    release.is_blocked = True
+                    release.block_reason = int(block_reason)
+                    release.block_note = "Auto-blocked because all containing tracks are blocked."
+                    release.save()
+
+                    # Thông báo cho user đã thả tim Release này
+                    if hasattr(release, 'favourite_by'):
+                        favorite_records = release.favourite_by.select_related('user').all()
+                        for record in favorite_records:
+                            send_system_notification(
+                                user=record.user,
+                                title="Release Blocked",
+                                message=f"The release '{release.title}' you liked is no longer available.",
+                                use_app=True,
+                                metadata= {
+                                    'short_id': release.short_id,
+                                    'type': 'release'
+                                }
+                            )
+                    # Bắn WebSocket ép FE gỡ Release khỏi màn hình
+                    send_system_event('CONTENT_BLOCKED', {
+                        'short_id': release.short_id,
+                        'type': 'release'
+                    })
+            return Response({"detail": "Đã chặn bài hát thành công!"}, status=status.HTTP_200_OK)
+
+        elif action == 'unblock':
+            track.is_blocked = False
+            if hasattr(track, 'block_reason'):
+                track.block_reason = None
+                track.block_note = None
+            track.save()
+
+            if track.artist and track.artist.user:
+                send_system_notification(
+                    user=track.artist.user,
+                    title="Song Unblocked",
+                    message=f"The song '{track.title}' has been restored.",
+                    use_app=True,
+                    metadata= {
+                        'short_id': release.short_id,
+                        'type': 'release'
+                    }
+                )
+                send_system_event('CONTENT_UNBLOCKED', {
+                    'short_id': short_id, 
+                    'type': 'track'
+                })
+
+            if hasattr(track, 'release') and track.release:
+                release = track.release
+                
+                # Nếu Release đang bị khóa, giờ có 1 bài gỡ block lại -> Mở khóa Release luôn
+                if release.is_blocked:
+                    release.is_blocked = False
+                    release.block_reason = None
+                    release.block_note = None
+                    release.save()
+
+                    # Thông báo cho user đã thả tim Release này
+                    if hasattr(release, 'favourite_by'):
+                        favorite_records = release.favourite_by.select_related('user').all()
+                        for record in favorite_records:
+                            send_system_notification(
+                                user=record.user,
+                                title="Release Unlocked",
+                                message=f"The release '{release.title}' you liked is no longer available.",
+                                use_app=True,
+                                metadata= {
+                                    'short_id': release.short_id,
+                                    'type': 'release'
+                                }
+                            )
+
+                    # Bắn WebSocket ép FE hiện Release lại lên màn hình
+                    send_system_event('CONTENT_UNBLOCKED', {
+                        'short_id': release.short_id,
+                        'type': 'release'
+                    })
+            return Response({"detail": "Đã mở khóa bài hát!"}, status=status.HTTP_200_OK)
+
+        return Response({"detail": "Hành động không hợp lệ."}, status=status.HTTP_400_BAD_REQUEST)

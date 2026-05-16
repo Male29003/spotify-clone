@@ -1,0 +1,13 @@
+# .gitattributes
+# Mặc định ép tất cả các file text về LF (Chuẩn chung cho Web/Linux/Mac)
+* text=auto eol=lf
+
+# Bắt buộc LF tuyệt đối cho các file nhạy cảm với hệ điều hành (Script, Config, Docker)
+*.sh text eol=lf
+*.py text eol=lf
+Dockerfile* text eol=lf
+.env* text eol=lf
+
+# Ngoại lệ: Cho phép CRLF đối với các file thực thi riêng của Windows (nếu sau này sếp có dùng)
+*.bat text eol=crlf
+*.cmd text eol=crlf
