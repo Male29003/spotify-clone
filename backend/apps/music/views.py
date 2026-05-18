@@ -14,6 +14,9 @@ from rest_framework.response import Response
 from django.db.models import F, Q, Count
 from django.utils import timezone
 from datetime import timedelta
+from collections import Counter
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 from django.core.cache import cache
 from pydub import AudioSegment
 from django.http import Http404
@@ -178,16 +181,26 @@ class RelatedTrackListView(generics.ListAPIView):
             is_active=True,
             is_blocked=False,
             release__is_published=True
-        ).exclude(id=current_track.id).order_by('-view_count')[:10] # Ưu tiên bài nhiều view
+        ).exclude(id=current_track.id)\
+         .select_related('artist', 'release')\
+         .order_by('-listens')[:10] 
 
-        if queryset.count() < 10:
-            needed = 10 - queryset.count()
+        qs_list = list(queryset)
+        
+        if len(qs_list) < 10:
+            needed = 10 - len(qs_list)
+            exclude_ids = [current_track.id] + [t.id for t in qs_list]
+            
+            # Xóa order_by('?') -> thay bằng bài hát mới/hot nhất
             fallback = Track.objects.filter(
                 is_active=True, is_blocked=False, release__is_published=True
-            ).exclude(id=current_track.id).exclude(id__in=queryset.values_list('id', flat=True)).order_by('?')[:needed]
-            queryset = list(queryset) + list(fallback)
+            ).exclude(id__in=exclude_ids)\
+             .select_related('artist', 'release')\
+             .order_by('-listens')[:needed]
+             
+            qs_list.extend(list(fallback))
 
-        return queryset
+        return qs_list
 
 # Lấy tredning track
 class TrendingTrackListView(generics.ListAPIView):
@@ -199,11 +212,12 @@ class TrendingTrackListView(generics.ListAPIView):
         return Track.objects.filter(
             is_active=True, 
             is_blocked=False,
-            artist__is_active=True, # Nghệ sĩ đang hoạt động
-            artist__is_blocked=False, # Nghệ sĩ không bị block
-            release__is_published=True, # Release không bị xóa
+            artist__is_active=True,
+            artist__is_blocked=False,
+            release__is_published=True,
             release__is_blocked=False
-        ).select_related('artist', 'genre', 'release')
+        ).select_related('artist', 'genre', 'release')\
+         .order_by('-listens')[:20]
 
 # Like và bỏ like track
 class LikedTrackToggleView(APIView):
@@ -349,13 +363,16 @@ class RecommendedTrackListView(generics.ListAPIView):
         if not user.is_authenticated:
             return base_qs.order_by('-listens')[:20]
 
-        #  NẾU LÀ USER ĐÃ ĐĂNG NHẬP -> Xây dựng Hồ sơ âm nhạc
-        # Lấy 3 thể loại nghe nhiều nhất
-        top_genres_qs = StreamHistory.objects.filter(user=user, track__genre__isnull=False) \
-            .values('track__genre_id') \
-            .annotate(genre_count=Count('id')) \
-            .order_by('-genre_count')[:3]
-        top_genres = [item['track__genre_id'] for item in top_genres_qs]
+        # ---------------------------------------------------------
+        # TỐI ƯU 1: Đếm Top Thể loại siêu tốc bằng Python Counter
+        # Chỉ phân tích trên 200 bài nghe gần nhất, bảo vệ Database
+        # ---------------------------------------------------------
+        recent_genres = StreamHistory.objects.filter(user=user, track__genre__isnull=False) \
+            .order_by('-created_at') \
+            .values_list('track__genre_id', flat=True)[:200]
+        
+        # Đếm tần suất xuất hiện và lấy 3 ID thể loại nhiều nhất
+        top_genres = [genre_id for genre_id, count in Counter(recent_genres).most_common(3)]
 
         # Lấy ID các nghệ sĩ user đang follow
         followed_artists = FavouriteArtist.objects.filter(user=user).values_list('artist_id', flat=True)
@@ -364,33 +381,38 @@ class RecommendedTrackListView(generics.ListAPIView):
 
         target_artist_ids = set(list(followed_artists) + list(liked_track_artists))
 
-        #  (Q Objects)
-        # Gợi ý bài hát nếu: Thuộc Top Thể Loại HOẶC Do Nghệ Sĩ Quan Tâm hát
         query = Q()
         if top_genres:
             query |= Q(genre_id__in=top_genres)
         if target_artist_ids:
             query |= Q(artist_id__in=target_artist_ids)
 
-        if not query: # Nếu user mới toanh, chưa nghe/like gì
+        if not query:
             return base_qs.order_by('-listens')[:20]
 
-        # Lấy 50 bài hát user vừa nghe gần nhất để loại bỏ khỏi danh sách gợi ý
-        recent_listened_tracks = StreamHistory.objects.filter(user=user).order_by('-created_at') \
-            .values_list('track_id', flat=True)[:50]
+        # ---------------------------------------------------------
+        # TỐI ƯU 2: Gom Query để không hit DB lắt nhắt
+        # ---------------------------------------------------------
+        recent_listened_tracks = list(StreamHistory.objects.filter(user=user) \
+            .order_by('-created_at') \
+            .values_list('track_id', flat=True)[:50])
 
-        # Filter + Loại trừ bài cũ + Ưu tiên bài view cao
         recommended_tracks = base_qs.filter(query) \
             .exclude(id__in=recent_listened_tracks) \
             .distinct() \
             .order_by('-listens')[:20]
 
-        # Nếu danh sách lọc ra ít quá (VD < 5 bài), chắp vá thêm nhạc Hot vào cho đủ 20
-        if recommended_tracks.count() < 5:
-            hot_tracks = base_qs.exclude(id__in=recommended_tracks.values_list('id', flat=True)).order_by('-listens')[:20]
-            return (list(recommended_tracks) + list(hot_tracks))[:20]
+        # Chuyển thành list 1 lần duy nhất để DB không phải count() rồi lại quét data
+        rec_list = list(recommended_tracks)
 
-        return recommended_tracks
+        if len(rec_list) < 5:
+            # Lọc bỏ luôn cả bài đã gợi ý và bài vừa nghe
+            exclude_ids = [t.id for t in rec_list] + recent_listened_tracks
+            hot_tracks = base_qs.exclude(id__in=exclude_ids).order_by('-listens')[:20]
+            
+            return (rec_list + list(hot_tracks))[:20]
+
+        return rec_list
 
 # Tải nhạc
 class SecureTrackDownloadView(APIView):

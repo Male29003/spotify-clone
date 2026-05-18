@@ -4,7 +4,7 @@ import zipfile
 import requests
 from pydub import AudioSegment
 from django.db import transaction
-from django.db.models import Sum, F
+from django.db.models import Sum, F, Case, When
 from cryptography.fernet import Fernet
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -16,6 +16,8 @@ from apps.core.permissions import AdminPermission, ArtistPermission
 from rest_framework import generics, permissions, filters, status, views
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from ..core.notification import send_system_notification, send_system_event
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 
 from . import serializers
 from ..music.models import Track
@@ -74,7 +76,7 @@ class ReleaseDetailView(generics.RetrieveAPIView):
         )
 # 2. API: You May Also Like (Gợi ý Release)
 class RelatedReleaseListView(generics.ListAPIView):
-    serializer_class = serializers.ShortReleaseSerializer
+    serializer_class = serializers.ListenerReleaseSerializer
     permission_classes = [permissions.AllowAny]
 
     def get_queryset(self):
@@ -87,13 +89,16 @@ class RelatedReleaseListView(generics.ListAPIView):
             is_active=True,
             is_published=True,
             is_blocked=False
-        ).exclude(id=current_release.id).order_by('-created_at')[:6]
+        ).exclude(id=current_release.id).select_related('artist').order_by('-created_at')[:6]
 
         if queryset.count() < 6:
             needed = 6 - queryset.count()
             fallback = Release.objects.filter(
                 is_active=True, is_published=True, is_blocked=False, artist__is_active=True
-            ).exclude(id=current_release.id).exclude(id__in=queryset.values_list('id', flat=True)).order_by('?')[:needed]
+            ).exclude(id=current_release.id)\
+             .exclude(id__in=[r.id for r in queryset])\
+             .select_related('artist').order_by('-created_at')[:needed]
+            
             queryset = list(queryset) + list(fallback)
 
         return queryset
@@ -104,6 +109,10 @@ class TrendingReleaseListView(generics.ListAPIView):
     permission_classes = [permissions.AllowAny]
     pagination_class = None
 
+    @method_decorator(cache_page(60 * 15)) 
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+    
     def get_queryset(self):
         return Release.objects.filter(
             is_published=True,
@@ -154,23 +163,23 @@ class RecentReleaseListView(generics.ListAPIView):
             return Release.objects.none()
 
         # 1. Lấy danh sách ID các Release vừa nghe (Sử dụng created_at, KHÔNG PHẢI listened_at)
-        recent_release_ids = StreamHistory.objects.filter(user=user, track__release__isnull=False) \
+        recent_history = StreamHistory.objects.filter(user=user, track__release__isnull=False) \
             .order_by('-created_at') \
-            .values_list('track__release_id', flat=True)
+            .values_list('track__release_id', flat=True)[:50]
 
-        # 2. Xóa các ID trùng lặp nhưng vẫn giữ nguyên thứ tự nghe mới nhất
+        # Lọc unique bằng Python với 50 con số tốn chưa tới 0.1 mili-giây, giữ nguyên được thứ tự nghe
         seen = set()
-        ordered_unique_ids = [x for x in recent_release_ids if not (x in seen or seen.add(x))][:10]
+        recent_release_ids = [x for x in recent_history if not (x in seen or seen.add(x))][:10]
 
-        # 3. Truy vấn Release dựa trên list ID đó
-        if not ordered_unique_ids:
+        if not recent_release_ids:
             return Release.objects.none()
 
-        # Dùng Case/When để giữ nguyên thứ tự sắp xếp theo ordered_unique_ids
-        from django.db.models import Case, When
-        preserved_order = Case(*[When(id=pk, then=pos) for pos, pk in enumerate(ordered_unique_ids)])
+        preserved_order = Case(*[When(id=pk, then=pos) for pos, pk in enumerate(recent_release_ids)])
         
-        return Release.objects.filter(id__in=ordered_unique_ids).order_by(preserved_order)
+        # Nhớ select_related('artist')
+        return Release.objects.filter(id__in=recent_release_ids)\
+                              .select_related('artist')\
+                              .order_by(preserved_order)
 
 # recommeend
 class RecommendedReleaseListView(generics.ListAPIView):
@@ -181,7 +190,7 @@ class RecommendedReleaseListView(generics.ListAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        base_qs = Release.objects.filter(is_active=True, is_blocked=False, is_published=True)
+        base_qs = Release.objects.filter(is_active=True, is_blocked=False, is_published=True).select_related('artist')
 
         if not user.is_authenticated:
             # Sắp xếp bằng số bài hát trong release hoặc random (Tùy logic)
@@ -189,8 +198,8 @@ class RecommendedReleaseListView(generics.ListAPIView):
 
         # Lấy ID nghệ sĩ từ lịch sử nghe
         listened_artists = StreamHistory.objects.filter(user=user) \
-            .values_list('track__artist_id', flat=True
-            ).distinct()
+            .order_by('-created_at')[:100] \
+            .values_list('track__artist_id', flat=True)
 
         followed_artists = FavouriteArtist.objects.filter(user=user).values_list('artist_id', flat=True)
         

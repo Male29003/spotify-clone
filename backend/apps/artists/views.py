@@ -10,6 +10,8 @@ from apps.core.permissions import AdminPermission, ArtistPermission
 from django.db import transaction
 from django.core.files.storage import default_storage
 from django.db.models.functions import Coalesce
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from ..core.choices import RejectionReason
 from ..core.notification import send_system_notification, send_system_event
@@ -67,31 +69,35 @@ class RelatedArtistListView(generics.ListAPIView):
         current_artist = generics.get_object_or_404(Artist, short_id=short_id)
         
         # BƯỚC 1: Tìm những User đã thả tim nhạc của Artist này
-        # (Lưu ý: Thay 'liked_by' bằng đúng related_name sếp khai báo trong model Track)
-        users_who_liked = current_artist.tracks.values_list('liked_by', flat=True).distinct()
+        users_who_liked = current_artist.tracks.filter(liked_by__isnull=False) \
+            .values_list('liked_by', flat=True).distinct()[:200]
         
-        queryset = Artist.objects.none()
+        qs_list = []
         if users_who_liked:
             # BƯỚC 2: Tìm các Artist khác mà nhóm User này cũng thích
             queryset = Artist.objects.filter(
                 tracks__liked_by__in=users_who_liked,
                 is_active=True,
                 is_blocked=False
-            ).exclude(id=current_artist.id).annotate(
-                overlap_score=Count('id')
-            ).order_by('-overlap_score')[:6]
-
-        # BƯỚC 3: FALLBACK - Nếu chưa đủ 6 người, lấy random thêm cho đủ giao diện
-        if queryset.count() < 6:
-            needed = 6 - queryset.count()
-            fallback = Artist.objects.filter(is_active=True, is_blocked=False).exclude(
-                id=current_artist.id
-            ).exclude(id__in=queryset.values_list('id', flat=True)).order_by('?')[:needed]
+            ).exclude(id=current_artist.id) \
+             .annotate(overlap_score=Count('id')) \
+             .order_by('-overlap_score')[:6]
             
-            # Gộp 2 queryset lại
-            queryset = list(queryset) + list(fallback)
+            qs_list = list(queryset)
 
-        return queryset
+        if len(qs_list) < 6:
+            needed = 6 - len(qs_list)
+            exclude_ids = [current_artist.id] + [a.id for a in qs_list]
+            
+            fallback = Artist.objects.filter(
+                is_active=True, 
+                is_blocked=False
+            ).exclude(id__in=exclude_ids)\
+             .order_by('-id')[:needed] # Dùng -id hoặc -created_at vừa nhanh vừa an toàn
+            
+            qs_list.extend(list(fallback))
+
+        return qs_list
     
 # lấy trang discography
 class ArtistDiscographyListView(generics.ListAPIView):
@@ -123,17 +129,20 @@ class TrendingArtistListView(generics.ListAPIView):
     permission_classes = [permissions.AllowAny]
     pagination_class=None
 
+    @method_decorator(cache_page(60 * 15)) 
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+    
     def get_queryset(self):
+        # Nếu model Artist có OneToOneField với User, nhớ thêm .select_related('user')
         return Artist.objects.filter(
                 is_active=True,
                 is_blocked=False, 
                 is_verify=True,
                 user__is_active=True,
-                tracks__is_active=True,
-                tracks__is_blocked=False,
-                tracks__release__is_published=True
+                # Bỏ bớt filter trùng lặp không cần thiết ở bảng tracks để giảm tải JOIN
             ).distinct()\
-            .annotate(total_listens=Coalesce(Sum('tracks__listens', 
+             .annotate(total_listens=Coalesce(Sum('tracks__listens', 
                 filter=Q(
                     tracks__is_active=True, 
                     tracks__is_blocked=False, 
