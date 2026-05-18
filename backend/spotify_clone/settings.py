@@ -23,7 +23,7 @@ load_dotenv()
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG', 'True') == 'True' 
+DEBUG = os.getenv('DEBUG', 'True')
 
 SECRET_KEY = os.getenv('SECRET_KEY', 'chuoi-tam-thoi-de-khong-bi-loi-khi-dev')
 
@@ -73,7 +73,8 @@ CHANNEL_LAYERS = {
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": f"{REDIS_URL}/1",
+        "LOCATION": f"{REDIS_URL}",
+        #"LOCATION": f"{REDIS_URL}/1",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         }
