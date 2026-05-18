@@ -92,8 +92,8 @@ IS_PRODUCTION = not DEBUG
 #CSRF_COOKIE_SECURE = IS_PRODUCTION
 
 SESSION_COOKIE_SAMESITE = 'None'
-SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SAMESITE = 'None'
+SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 
 REST_AUTH = {
@@ -107,8 +107,10 @@ REST_AUTH = {
     'JWT_AUTH_COOKIE': 'access',
     'JWT_AUTH_REFRESH_COOKIE': 'refresh',
     'JWT_AUTH_HTTPONLY': True,
-    'JWT_AUTH_SECURE': True,   
-    'JWT_AUTH_SAMESITE': 'None'
+    'JWT_AUTH_SECURE': True,      
+    'JWT_AUTH_SAMESITE': 'None',  # CHỖ NÀY NÈ: Phải có dấu nháy đơn 'None'
+    'JWT_AUTH_RETURN_EXPIRATION': True,
+    'JWT_AUTH_COOKIE_USE_CSRF': False,
 }
 
 AUTH_USER_MODEL = 'users.User'
@@ -150,8 +152,8 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -225,15 +227,18 @@ SPECTACULAR_SETTINGS = {
 
 SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('Bearer',),
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
     'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+    'UPDATE_LAST_LOGIN': True,
     'USER_ID_FIELD': 'id',
     'USER_ID_CLAIM': 'user_id',
     'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
-    'AUTH_COOKIE': 'access',
-    'UPDATE_LAST_LOGIN': True,
 }
+JWT_AUTH_SAMESITE = 'None'
+JWT_AUTH_SECURE = True
+JWT_AUTH_HTTPONLY = True
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
 
