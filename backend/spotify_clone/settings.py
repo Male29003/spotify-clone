@@ -289,3 +289,25 @@ AWS_S3_REGION_NAME = 'auto'
 # Chỉ định Django dùng S3 cho Media
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 MEDIA_URL = f'{AWS_S3_CUSTOM_DOMAIN}/'
+
+# 1. Cấu hình cho dj-rest-auth (Đưa ra ngoài dictionary)
+JWT_AUTH_COOKIE = 'access'
+JWT_AUTH_REFRESH_COOKIE = 'refresh'
+JWT_AUTH_HTTPONLY = True
+JWT_AUTH_SECURE = True       # BẮT BUỘC
+JWT_AUTH_SAMESITE = 'None'   # BẮT BUỘC: Phải là chuỗi 'None'
+
+# 2. Cấu hình Core Django (Đảm bảo đồng bộ)
+SESSION_COOKIE_SAMESITE = 'None'
+CSRF_COOKIE_SAMESITE = 'None'
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+
+# 3. SimpleJWT (Để chắc chắn thầng này không can thiệp ngược)
+from datetime import timedelta
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'AUTH_HEADER_TYPES': ('Bearer',),
+    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
+}
