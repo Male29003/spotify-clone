@@ -88,6 +88,8 @@ const GenreManagePage: React.FC = () => {
         }
 
     }, [genreData])
+
+    console.log(data)
     
     return (
         <div className='w-full max-w-7xl mx-auto flex flex-col gap-6 pb-10'>
