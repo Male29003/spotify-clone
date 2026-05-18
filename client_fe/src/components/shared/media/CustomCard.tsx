@@ -9,7 +9,7 @@ import { DEFAULT_PLAYLIST_ICON } from '../../../constants/constants';
 interface CustomCardProps {
     item: any; 
     type?: ItemType;
-    onClick?: () => void;
+    onClick?: (e: React.MouseEvent) => void;
     onPlay?: (e: React.MouseEvent) => void
 }
 

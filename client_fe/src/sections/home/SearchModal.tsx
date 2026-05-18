@@ -27,10 +27,10 @@ const SearchDropdown: React.FC<SearchDropdownProps> = ({ query, isOpen, onClose 
 
     return (
         <>
-            <div className="fixed inset-0 z-50" onClick={onClose}></div>
+            <div className="fixed inset-0 z-70" onClick={onClose}></div>
 
             {/* Dropdown kết quả */}
-            <div className="absolute top-full mt-2 w-full max-h-[75vh] bg-panel border border-border rounded-xl shadow-2xl z-50 overflow-y-auto p-4 space-y-6">
+            <div className="absolute top-full mt-2 w-full max-h-[75vh] bg-panel border border-border rounded-xl shadow-2xl z-70 overflow-y-auto p-4 space-y-6">
                 {isLoading ? (
                     <div className="py-6 flex justify-center"><Loader /></div>
                 ) : (

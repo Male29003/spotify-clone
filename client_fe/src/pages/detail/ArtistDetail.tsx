@@ -8,7 +8,7 @@ import { useAuthStore } from '../../stores/auth/authStore';
 import { useGetArtistDetail, useGetRelatedArtists, useToggleFavouriteArtist } from '../../hooks/artist/useArtists';
 import { CustomToast } from '../../components/shared/feedback/CustomToast';
 import DetailPageLayout from '../../layouts/detail/DetailLayout';
-import CustomCard from '../../components/shared/media/CustomCard';
+import MediaSection from '../../sections/home/MediaSection';
 
 const ArtistDetail: React.FC = () => {
     const navigate = useNavigate()
@@ -72,7 +72,7 @@ const ArtistDetail: React.FC = () => {
             totalTracks={tracks.length}
             mainContent={
                 <TrackTable 
-                    tracks={tracks.slice(0, 5)}
+                    tracks={tracks}
                     playTrack={playTrack}
                 />
             }
@@ -120,16 +120,11 @@ const ArtistDetail: React.FC = () => {
                                 </span>
                             )}
                         </div>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
-                            {releases.slice(0, 6).map((r: any) => (
-                                <CustomCard 
-                                    onClick={() => navigate(`/release/${r.short_id}`)}
-                                    key={r.id} 
-                                    item={r} 
-                                    type="release" 
-                                />
-                            ))}
-                        </div>
+                        <MediaSection 
+                            title=""
+                            items={releases.slice(0,10)}
+                            itemType='release'
+                        />
                     </div>
                     )}
 
@@ -137,16 +132,11 @@ const ArtistDetail: React.FC = () => {
                     {relatedArtists.length > 0 && (
                         <div className="flex flex-col gap-4">
                             <h2 className="text-2xl font-bold text-text-main">Artists You May Like</h2>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
-                                {relatedArtists.slice(0, 6).map((a: any) => (
-                                    <CustomCard 
-                                        onClick={() => navigate(`/artist/${a.short_id}`)}
-                                        key={a.id} 
-                                        item={a} 
-                                        type="artist" 
-                                    />
-                                ))}
-                            </div>
+                            <MediaSection 
+                                title=""
+                                items={relatedArtists}
+                                itemType='artist'
+                            />
                         </div>
                     )}
                 </div>

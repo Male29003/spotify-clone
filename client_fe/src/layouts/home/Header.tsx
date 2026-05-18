@@ -113,7 +113,7 @@ const CustomHeader = () => {
 
                             {/* Menu Thả xuống */}
                             {openDropdownProfile &&
-                                <div className="absolute top-full right-0 mt-2 min-w-[200px] bg-panel border border-border rounded-md shadow-xl z-50 p-1 animate-fadeIn">
+                                <div className="absolute top-full right-0 mt-2 min-w-[200px] bg-panel border border-border rounded-md shadow-xl z-70 p-1 animate-fadeIn">
                                     <div className="px-4 py-3 border-b border-hover mb-1">
                                         <p className="text-sm text-text-main font-bold truncate">{user?.username || 'User'}</p>
                                         <p className="text-xs text-text-sub truncate">{user?.email}</p>

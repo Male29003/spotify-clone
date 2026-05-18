@@ -14,6 +14,9 @@ interface MediaSectionProps {
 const MediaSection: React.FC<MediaSectionProps> = ({ title, items, itemType }) => {
     const sliderRef = useRef<HTMLDivElement>(null);
     
+    const hasDragged = useRef(false)
+    const mouseStartX = useRef(0)
+
     const [isDragging, setIsDragging] = useState(false);
     const [startX, setStartX] = useState(0);
     const [scrollLeft, setScrollLeft] = useState(0);
@@ -25,6 +28,9 @@ const MediaSection: React.FC<MediaSectionProps> = ({ title, items, itemType }) =
     const handleMouseDown = useCallback((e: React.MouseEvent) => {
         if (!sliderRef.current) return;
         setIsDragging(true);
+        hasDragged.current = false
+        mouseStartX.current = e.pageX
+
         setStartX(e.pageX - sliderRef.current.offsetLeft);
         setScrollLeft(sliderRef.current.scrollLeft);
     }, []);
@@ -35,6 +41,13 @@ const MediaSection: React.FC<MediaSectionProps> = ({ title, items, itemType }) =
     const handleMouseMove = useCallback((e: React.MouseEvent) => {
         if (!isDragging || !sliderRef.current) return;
         e.preventDefault(); 
+
+        // Nếu kéo chuột lớn hơn 5 pixel thì đánh dấu là dan9 keo1
+        const walkX = Math.abs(e.pageX - mouseStartX.current);
+        if (walkX > 5) {
+            hasDragged.current = true;
+        }
+
         const x = e.pageX - sliderRef.current.offsetLeft;
         const walk = (x - startX) * 1.2; 
         sliderRef.current.scrollLeft = scrollLeft - walk;
@@ -51,9 +64,11 @@ const MediaSection: React.FC<MediaSectionProps> = ({ title, items, itemType }) =
 
     return (
         <section className="mb-8 relative group/section">
-             <h2 className="ml-4 text-2xl font-bold text-text-main mb-4 cursor-pointer inline-block transition-transform duration-300 hover:underline hover:scale-105">
-                {title}
-            </h2>
+            {title && 
+                <h2 className="ml-4 text-2xl font-bold text-text-main mb-4 cursor-pointer inline-block transition-transform duration-300 hover:underline hover:scale-105">
+                    {title}
+                </h2>
+            }
             
             <div className="relative">
                 <button 
@@ -83,12 +98,22 @@ const MediaSection: React.FC<MediaSectionProps> = ({ title, items, itemType }) =
                                 <CustomCard
                                     item={item}
                                     type={targetType}
-                                    onClick={() => {
+                                    onClick={(e) => {
+                                        if (hasDragged.current) {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            return;
+                                        }
                                         if(item.short_id)
                                             navigate(`/${targetType}/${item.short_id}`);
                                         else navigate(`/${targetType}/${item.slug}`)
                                     }}
-                                    onPlay={() => {
+                                    onPlay={(e) => {
+                                        if (hasDragged.current) {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            return;
+                                        }
                                         if (targetType === 'track') {
                                             playTrack(item, [item]);
                                         } else {

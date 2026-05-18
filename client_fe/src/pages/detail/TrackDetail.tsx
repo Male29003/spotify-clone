@@ -11,7 +11,7 @@ import DetailPageLayout from '../../layouts/detail/DetailLayout';
 import ArtistMiniCard from '../../components/shared/ui/ArtistMiniCard';
 import { useGetRelatedReleases } from '../../hooks/release/useReleases';
 import { useGetRelatedArtists } from '../../hooks/artist/useArtists';
-import CustomCard from '../../components/shared/media/CustomCard';
+import MediaSection from '../../sections/home/MediaSection';
 
 const TrackDetail: React.FC = () => {
     const{ user, isAuthenticated } = useAuthStore(state => state)
@@ -122,45 +122,33 @@ const TrackDetail: React.FC = () => {
                     {relatedTracks.length > 0 && (
                         <div className="flex flex-col gap-4">
                             <h2 className="text-2xl font-bold text-text-main">Songs You May Also Like</h2>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
-                                {relatedReleases.slice(0, 6).map((r: any) => (
-                                    <CustomCard 
-                                        key={r.id} 
-                                        item={r} 
-                                        type="track" 
-                                    />
-                                ))}
-                            </div>
+                            <MediaSection 
+                                title=""
+                                items={relatedTracks.slice(0,8)}
+                                itemType='track'
+                            />
                         </div>
                     )}
                     {/* You may like - Releases */}
                     {relatedReleases.length > 0 && (
                         <div className="flex flex-col gap-4">
                             <h2 className="text-2xl font-bold text-text-main">Releases You May Also Like</h2>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
-                                {relatedReleases.slice(0, 6).map((r: any) => (
-                                    <CustomCard 
-                                        key={r.id} 
-                                        item={r} 
-                                        type="release" 
-                                    />
-                                ))}
-                            </div>
+                            <MediaSection 
+                                title=""
+                                items={relatedReleases.slice(0,8)}
+                                itemType='release'
+                            />
                         </div>
                     )}
                     {/* You may like - Artists */}
                     {relatedArtists.length > 0 && (
                         <div className="flex flex-col gap-4">
                             <h2 className="text-2xl font-bold text-text-main">Artists You May Like</h2>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
-                                {relatedArtists.slice(0, 6).map((a: any) => (
-                                    <CustomCard 
-                                        key={a.id} 
-                                        item={a} 
-                                        type="artist" 
-                                    />
-                                ))}
-                            </div>
+                            <MediaSection 
+                                title=""
+                                items={relatedArtists.slice(0,8)}
+                                itemType='artist'
+                            />
                         </div>
                     )}
                 </div>

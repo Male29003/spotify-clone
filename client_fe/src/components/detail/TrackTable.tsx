@@ -32,9 +32,9 @@ const TrackTable: React.FC<TrackTableProps> = ({ tracks, playTrack, onRemoveTrac
     };
     return (
         <div className="pb-8 w-full">
-            <div className="w-full overflow-x-auto custom-scrollbar">
-                <div className="min-w-2xl">
-                    <div className={`${gridLayout} text-text-main border-b border-border text-sm`}>
+            <div className="w-full overflow-x-auto">
+                <div className="min-w-2xl max-h-[450px] overflow-y-auto custom-scrollbar relative rounded-lg bg-panel/10">
+                    <div className={`${gridLayout} text-text-sub border-b border-border text-sm sticky top-0 bg-panel/70 z-10 font-bold uppercase tracking-wider backdrop-blur-md`}>
                         <span className="text-center">#</span>
                         <span>Title</span>
                         <span>Artist</span>

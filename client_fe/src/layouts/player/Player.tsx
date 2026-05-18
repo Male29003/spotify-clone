@@ -182,7 +182,7 @@ const Player = () => {
         <>
             {portalTarget && createPortal(
                 <div 
-                    className={`absolute inset-0 z-80 bg-base transition-transform duration-500 ease-in-out transform ${
+                    className={`absolute inset-0 z-50 bg-base transition-transform duration-500 ease-in-out transform ${
                         showLyrics ? 'translate-y-0' : 'translate-y-full'
                     }`}
                 >

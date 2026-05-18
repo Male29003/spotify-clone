@@ -9,7 +9,7 @@ import { useRecommendedTracks } from '../../hooks/track/useTracks';
 import { useAuthStore } from '../../stores/auth/authStore';
 
 const HomePage: React.FC = () => {
-    const { isAuthenticated, user } = useAuthStore(state => state);
+    const { isAuthenticated } = useAuthStore(state => state);
 
     const { data: artistsData, isLoading: loadingArtists } = useTrendingArtists();
     const { data: releasesData, isLoading: loadingReleases } = useGetTrendingReleases();

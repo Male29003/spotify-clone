@@ -43,10 +43,11 @@ export const useToggleFavouriteArtist = () => {
             queryClient.invalidateQueries({ queryKey: ['artist_detail'] });
             queryClient.invalidateQueries({ queryKey: ['track_detail'] });
             queryClient.invalidateQueries({ queryKey: ['release_detail'] });
-            
-            // (Các key cũ của sếp)
             queryClient.invalidateQueries({ queryKey: ['trending_artists'] });
             queryClient.invalidateQueries({ queryKey: ['favourite_artists'] });
+            queryClient.invalidateQueries({ queryKey: ['related_artists'] });
+            queryClient.invalidateQueries({ queryKey: ['related_releases'] });
+            queryClient.invalidateQueries({ queryKey: ['related_tracks'] });
         },
         onError: (error: any) => {
             console.error("Error:", error.response?.data || error.message);

@@ -77,6 +77,9 @@ export const useToggleFavouriteRelease = () => {
             queryClient.invalidateQueries({ queryKey: ['recommended-releases'] });
             queryClient.invalidateQueries({ queryKey: ['recent-releases'] });
             queryClient.invalidateQueries({ queryKey: ['trending_releases'] });
+            queryClient.invalidateQueries({ queryKey: ['related_artists'] });
+            queryClient.invalidateQueries({ queryKey: ['related_releases'] });
+            queryClient.invalidateQueries({ queryKey: ['related_tracks'] });
         },
         onError: (error: any) => {
             console.error("Error:", error.response?.data || error.message);

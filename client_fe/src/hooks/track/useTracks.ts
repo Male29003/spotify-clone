@@ -118,6 +118,9 @@ export const useToggleFavouriteTrack = () =>{
             queryClient.invalidateQueries({ queryKey: ['trending_tracks'] });
             queryClient.invalidateQueries({ queryKey: ['recent_tracks'] });
             queryClient.invalidateQueries({ queryKey: ['recommended_tracks'] });
+            queryClient.invalidateQueries({ queryKey: ['related_artists'] });
+            queryClient.invalidateQueries({ queryKey: ['related_releases'] });
+            queryClient.invalidateQueries({ queryKey: ['related_tracks'] });
         },
         onError: (error: any) => {
             console.error("Error:", error.response?.data || error.message);

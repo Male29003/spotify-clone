@@ -1,8 +1,7 @@
 import React from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import Loader from '../../components/shared/ui/Loader';
 import DetailPageLayout from '../../layouts/detail/DetailLayout';
-import CustomCard from '../../components/shared/media/CustomCard';
 import TrackTable from '../../components/detail/TrackTable';
 import { useAuthStore } from '../../stores/auth/authStore';
 import { usePlayerStore } from '../../stores/usePlayerStore';
@@ -12,9 +11,9 @@ import ArtistMiniCard from '../../components/shared/ui/ArtistMiniCard';
 import { CustomToast } from '../../components/shared/feedback/CustomToast';
 import { PlayArrow, FavoriteBorder, Favorite, Download, Cancel } from '@mui/icons-material';
 import { useGetRelatedReleases, useGetReleaseDetail, useToggleFavouriteRelease } from '../../hooks/release/useReleases';
+import MediaSection from '../../sections/home/MediaSection';
 
 const ReleaseDetail: React.FC = () => {
-    const navigate = useNavigate()
     const { short_id } = useParams<{ short_id: string }>();
     const playTrack = usePlayerStore(state => state.playTrack);
     const { user, isAuthenticated }  = useAuthStore(state => state)
@@ -100,7 +99,6 @@ const ReleaseDetail: React.FC = () => {
             </div>
         </>
     )
-    
     return (
         <DetailPageLayout 
             actionBtns={ActionBtns}
@@ -127,32 +125,22 @@ const ReleaseDetail: React.FC = () => {
                     {relatedReleases.length > 0 && (
                         <div className="flex flex-col gap-4">
                             <h2 className="text-2xl font-bold text-text-main">You May Also Like (Albums)</h2>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
-                                {relatedReleases.slice(0, 6).map((r: any) => (
-                                    <CustomCard 
-                                        onClick={() => navigate(`/release/${r.short_id}`)}
-                                        key={r.id} 
-                                        item={r} 
-                                        type="release" 
-                                    />
-                                ))}
-                            </div>
+                            <MediaSection 
+                                title=""
+                                items={relatedReleases.slice(0,8)}
+                                itemType='release'
+                            />
                         </div>
                     )}
                     {/* You may like - Artists */}
                     {relatedArtists.length > 0 && (
                         <div className="flex flex-col gap-4">
                             <h2 className="text-2xl font-bold text-text-main">Fans Also Like</h2>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
-                                {relatedArtists.slice(0, 6).map((a: any) => (
-                                    <CustomCard 
-                                        onClick={() => navigate(`/artist/${a.short_id}`)}
-                                        key={a.id} 
-                                        item={a} 
-                                        type="artist" 
-                                    />
-                                ))}
-                            </div>
+                            <MediaSection 
+                                title=""
+                                items={relatedArtists.slice(0,8)}
+                                itemType='artist'
+                            />
                         </div>
                     )}
                 </div>
