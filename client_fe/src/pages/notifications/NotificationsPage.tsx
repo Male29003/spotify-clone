@@ -3,7 +3,8 @@ import { useNotificationStore } from '../../stores/useNotificationStore';
 import { api } from '../../api/axiosConfig';
 import { useMarkAsRead } from '../../hooks/user/useUsers';
 import { useNavigate } from 'react-router-dom';
-import { CloseOutlined, DoneAll } from '@mui/icons-material';
+import { DeleteOutline, DoneAll } from '@mui/icons-material';
+import { useConfirmModalStore } from '../../stores/useConfirmModalStore';
 
 const NotificationsPage = () => {
     const navigate = useNavigate()
@@ -128,30 +129,37 @@ const NotificationsPage = () => {
                     <div 
                         key={notif.id}
                         onClick={() => handleNotificationClick(notif)}
-                        className={`p-5 rounded-2xl border transition-all cursor-pointer hover:scale-105 hover:border-highlight/80 ${
+                        className={`group p-5 rounded-2xl border transition-all cursor-pointer hover:scale-[1.02] hover:border-highlight/80 flex items-start gap-4 ${
                             notif.is_read 
                             ? 'bg-panel border-border' 
                             : 'bg-highlight/5 border-highlight/30 shadow-sm'
                         }`}
                     >
+                        <div className="flex-1 min-w-0">
+                            <div className="flex justify-between items-start mb-2 gap-4">
+                                <h4 className={`font-bold truncate ${notif.is_read ? 'text-text-sub' : 'text-text-main'}`}>
+                                    {notif.title}
+                                </h4>
+                                <span className="text-[10px] text-text-sub font-mono shrink-0 pt-0.5">
+                                    {new Date(notif.created_at).toLocaleString()}
+                                </span>
+                            </div>
+                            <p className="text-sm text-text-sub leading-relaxed line-clamp-2">
+                                {notif.message}
+                            </p>
+                        </div>
+
+                        {/* nút xóa */}
                         <button 
-                            onClick={(e) => handleDelete(e, notif.id)}
-                            className="absolute top-4 right-4 p-1.5 rounded-full text-text-sub hover:text-error hover:bg-error/20 opacity-0 group-hover:opacity-100 transition-all"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handleDelete(e, notif.id);
+                            }}
+                            className="shrink-0 p-1.5 w-8 h-8 translate-1/2 flex items-center justify-center rounded-lg text-text-sub hover:text-error hover:bg-error/20 md:opacity-0 group-hover:opacity-100 transition-all"
                             title="Delete"
                         >
-                            <CloseOutlined fontSize="small" />
+                            <DeleteOutline fontSize="small" />
                         </button>
-                        <div className="flex justify-between items-start mb-2 truncate">
-                            <h4 className={`font-bold ${notif.is_read ? 'text-text-sub' : 'text-text-main'}`}>
-                                {notif.title}
-                            </h4>
-                            <span className="text-[10px] text-text-sub font-mono">
-                                {new Date(notif.created_at).toLocaleString()}
-                            </span>
-                        </div>
-                        <p className="text-sm text-text-sub leading-relaxed">
-                            {notif.message}
-                        </p>
                     </div>
                 ))}
             </div>

@@ -19,7 +19,6 @@ interface StudioReleaseDetailModalProps {
     onClose: () => void;
 }
 
-
 const StudioReleaseDetailModal: React.FC<StudioReleaseDetailModalProps> = ({ short_id, onClose }) => {
     const { currentTrack, isPlaying, playTrack, setCurrentTrack, setQueue } = usePlayerStore();
     
@@ -45,6 +44,9 @@ const StudioReleaseDetailModal: React.FC<StudioReleaseDetailModalProps> = ({ sho
     const [editingTrackId, setEditingTrackId] = useState<string | null>(null);
     const [editTrackTitle, setEditTrackTitle] = useState('');
     const [editTrackGenre, setEditTrackGenre] = useState('');
+    const [editTrackLyricsFile, setEditTrackLyricsFile] = useState<File | null>(null);
+    const [currentLyricsName, setCurrentLyricsName] = useState<string>('');
+    const [isLyricsRemoved, setIsLyricsRemoved] = useState(false)
 
     useEffect(() => {
         if(tracks.length > 0) setLocalTracks(tracks);
@@ -151,21 +153,37 @@ const StudioReleaseDetailModal: React.FC<StudioReleaseDetailModalProps> = ({ sho
     };
 
     // ============================ Sửa thông tin bài hát ============================  
-    const startEditTrack = (track: any) => {
+    const startEditTrack = async (track: any) => {
         setEditingTrackId(track.short_id);
         setEditTrackTitle(track.title);
         setEditTrackGenre(track.genre?.id?.toString() || '');
+        setEditTrackLyricsFile(null);
+        setIsLyricsRemoved(false)
+        
+        if (track.lyrics_file) {
+            setCurrentLyricsName(track.lyrics_file.split('/').pop() || 'Existing File');
+        } else {
+            setCurrentLyricsName('');
+        }
     };
 
     const handleSaveTrackEdit = (trackShort_id: string) => {
         if (!editTrackTitle.trim() || !editTrackGenre) {
             return CustomToast.error("Title and Genre are required!");
         }
+        const formData = new FormData();
+        formData.append('title', editTrackTitle.trim());
+        formData.append('genre', editTrackGenre);
+        if (editTrackLyricsFile) {
+            formData.append('lyrics', editTrackLyricsFile); 
+        } else if (isLyricsRemoved) {
+            formData.append('lyrics', '')
+        }
 
         setLoading(true);
         updateTrack({ 
             short_id: trackShort_id, 
-            data: { title: editTrackTitle.trim(), genre: editTrackGenre } 
+            data: formData
         }, {
             onSuccess: () => {
                 CustomToast.success("Track updated successfully!");
@@ -442,39 +460,111 @@ const StudioReleaseDetailModal: React.FC<StudioReleaseDetailModalProps> = ({ sho
                                         // ================= edit nhạc =================
                                         if (editingTrackId === track.short_id) {
                                             return (
-                                                <div className="flex items-center gap-4 p-4 rounded-xl border-2 border-highlight bg-highlight/5 animate-fadeIn">
-                                                    <span className="w-4 text-center text-text-sub font-bold">{index + 1}</span>
-                                                    <div className="flex-1 flex gap-4">
-                                                        <input 
-                                                            type="text" value={editTrackTitle} 
-                                                            onChange={e => setEditTrackTitle(e.target.value)}
-                                                            className="flex-1 bg-panel p-2 rounded-md text-sm text-text-main border border-border focus:border-highlight outline-none"
-                                                            placeholder="Track Title"
-                                                        />
-                                                        <select 
-                                                            value={editTrackGenre} 
-                                                            onChange={e => setEditTrackGenre(e.target.value)}
-                                                            className="w-40 bg-panel p-2 rounded-md text-sm text-text-main border border-border focus:border-highlight outline-none"
-                                                        >
-                                                            <option value="" disabled>Genre</option>
-                                                            {genres.map((g: any) => 
-                                                                <option key={g.id} value={g.id}>{g.name}</option>
-                                                            )}
-                                                        </select>
+                                                <div className="flex flex-col gap-3 p-4 rounded-xl border-2 border-highlight bg-highlight/5 animate-fadeIn">
+                                                    <div className="flex items-center gap-4">
+                                                        <span className="w-4 text-center text-text-sub font-bold">{index + 1}</span>
+                                                        <div className="flex-1 flex gap-4">
+                                                            <input 
+                                                                type="text" value={editTrackTitle} 
+                                                                onChange={e => setEditTrackTitle(e.target.value)}
+                                                                className="flex-1 bg-panel p-2 rounded-md text-sm text-text-main border border-border focus:border-highlight outline-none"
+                                                                placeholder="Track Title"
+                                                            />
+                                                            <select 
+                                                                value={editTrackGenre} 
+                                                                onChange={e => setEditTrackGenre(e.target.value)}
+                                                                className="w-40 bg-panel p-2 rounded-md text-sm text-text-main border border-border focus:border-highlight outline-none"
+                                                            >
+                                                                <option value="" disabled>Genre</option>
+                                                                {genres.map((g: any) => 
+                                                                    <option key={g.id} value={g.id}>{g.name}</option>
+                                                                )}
+                                                            </select>
+                                                        </div>
+                                                        <div className="flex gap-2">
+                                                            <button 
+                                                                onClick={() => setEditingTrackId(null)} 
+                                                                className="text-xs font-bold text-text-sub hover:text-text-main px-3 py-2"
+                                                            >
+                                                                Cancel
+                                                            </button>
+                                                            <button 
+                                                                disabled={isUpdatingTrack}
+                                                                onClick={() => handleSaveTrackEdit(track.short_id)} 
+                                                                className={`text-xs font-bold text-panel px-4 py-2 rounded-lg hover:scale-105 transition-transform flex items-center gap-1
+                                                                    ${isUpdatingTrack ? 'bg-highlight/50 italic' : 'bg-highlight'}
+                                                                    `}
+                                                            >
+                                                                <CheckCircleOutlined fontSize="small"/> {isUpdatingTrack ? 'Saving' : 'Save'}
+                                                            </button>
+                                                        </div>
                                                     </div>
-                                                    <div className="flex gap-2">
-                                                        <button 
-                                                            onClick={() => setEditingTrackId(null)} 
-                                                            className="text-xs font-bold text-text-sub hover:text-text-main px-3 py-2"
-                                                        >
-                                                            Cancel
-                                                        </button>
-                                                        <button 
-                                                            onClick={() => handleSaveTrackEdit(track.short_id)} 
-                                                            className="text-xs font-bold bg-highlight text-panel px-4 py-2 rounded-lg hover:scale-105 transition-transform flex items-center gap-1"
-                                                        >
-                                                            <CheckCircleOutlined fontSize="small"/> Save
-                                                        </button>
+                                                    {/* nhập Lyrics */}
+                                                    <div className="ml-8 pr-32 flex flex-col gap-2">
+                                                        <span className="text-xs font-bold text-text-sub uppercase">Lyrics File (.lrc)</span>
+                                                        
+                                                        <div className="flex items-center gap-4">
+                                                            <label className={`cursor-pointer text-xs font-bold px-4 py-2 rounded border transition-colors ${
+                                                                isLyricsRemoved ? 'bg-panel border-border text-text-sub opacity-50 cursor-not-allowed' : 'bg-search hover:bg-hover text-text-main border-border'
+                                                            }`}>
+                                                                Upload New File
+                                                                <input 
+                                                                    type="file" 
+                                                                    className="hidden" 
+                                                                    disabled={isLyricsRemoved}
+                                                                    accept=".lrc,.txt"
+                                                                    onChange={e => {
+                                                                        const file = e.target.files?.[0];
+                                                                        if (file) setEditTrackLyricsFile(file);
+                                                                        e.target.value = '';
+                                                                    }}
+                                                                />
+                                                            </label>
+                                                            
+                                                            {editTrackLyricsFile ? (
+                                                                <>
+                                                                    <span className="text-sm truncate max-w-[200px] text-highlight font-medium">
+                                                                        {editTrackLyricsFile.name}
+                                                                    </span>
+                                                                    <button 
+                                                                        onClick={() => setEditTrackLyricsFile(null)}
+                                                                        className="text-sm md:text-md text-error hover:font-bold text-left mt-0.5 rounded-lg hover:bg-error/20 px-3 py-2 transition-all duration-200"
+                                                                    >
+                                                                        Cancel change
+                                                                    </button>
+                                                                </>
+                                                            ) : currentLyricsName ? (
+                                                                <>
+                                                                    <span className={`text-sm truncate max-w-[200px] transition-all duration-300 ${
+                                                                        isLyricsRemoved 
+                                                                        ? 'text-text-sub italic line-through opacity-70' 
+                                                                        : 'text-highlight font-medium'
+                                                                    }`}>
+                                                                        {currentLyricsName}
+                                                                    </span>
+                                                                    
+                                                                    {isLyricsRemoved ? (
+                                                                        <button 
+                                                                            onClick={() => setIsLyricsRemoved(false)}
+                                                                            className="text-sm md:text-md text-info hover:font-bold text-left mt-0.5 rounded-lg hover:bg-info/20 px-3 py-2 transition-all duration-200"
+                                                                        >
+                                                                            Undo
+                                                                        </button>
+                                                                    ) : (
+                                                                        <button 
+                                                                            onClick={() => setIsLyricsRemoved(true)}
+                                                                            className="text-sm md:text-md text-error hover:font-bold text-left mt-0.5 rounded-lg hover:bg-error/20 px-3 py-2 transition-all duration-200"
+                                                                        >
+                                                                            Remove file
+                                                                        </button>
+                                                                    )}
+                                                                </>
+                                                            ) : (
+                                                                <span className="text-sm truncate max-w-[200px] text-text-sub italic">
+                                                                    No file
+                                                                </span>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                 </div>
                                             );

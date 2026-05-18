@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../stores/auth/authStore';
 import SearchDropdown from '../../sections/home/SearchModal';
 import NotificationDropdown from '../../components/shared/ui/NotificationDropdown';
+import { handleLogout } from '../../api/axiosConfig';
 
 const CustomHeader = () => {
     // Gọi các hook cần thiết
@@ -169,8 +170,7 @@ const CustomHeader = () => {
                                     <button 
                                         onClick={() => {
                                             setOpenDropdownProfile(false);                                   
-                                            clearUser();
-                                            navigate('/login');
+                                            handleLogout()
                                         }}
                                         className="text-sm text-error hover:bg-hover hover:text-error/80 w-full text-left px-4 py-2 rounded-md whitespace-nowrap font-medium mt-1 border-t border-hover pt-2"
                                     >

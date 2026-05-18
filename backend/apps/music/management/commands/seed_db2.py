@@ -311,7 +311,7 @@ class Command(BaseCommand):
     def seed_favourites(self):
         self.stdout.write('8. Đang seed FavouriteArtist và cập nhật followers...')
         # Lấy user thường, bỏ qua admin/artist cho sạch data
-        users = User.objects.filter(type='user', is_superuser=False)
+        users = User.objects.filter(type='user', is_superuser=False, is_staff=False, is_active=True)
         artists = list(Artist.objects.all())
 
         for user in users:
@@ -363,7 +363,7 @@ class Command(BaseCommand):
     def seed_stream_history(self):
         self.stdout.write('10. Đang seed StreamHistory (Phân bổ theo tháng)...')
         tracks = Track.objects.all()
-        all_active_users = list(User.objects.filter(is_active=True))
+        all_active_users = list(User.objects.filter(is_active=True, is_staff=False, is_superuser=False, type='user'))
         premium_users = [u for u in all_active_users if u.is_premium]
 
         if not premium_users:

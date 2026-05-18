@@ -214,7 +214,7 @@ const ProfilePage: React.FC = () => {
                         onChange={handleImageChange} 
                         onClick={(e) => e.stopPropagation()}
                     />
-                    {hasImageToRemove && (
+                    {isEditing && hasImageToRemove && (
                         <button
                             onClick={handleImageRemove}
                             type='button'

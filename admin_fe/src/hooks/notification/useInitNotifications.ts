@@ -14,6 +14,7 @@ export const useInitNotifications = () => {
         queryKey: ['my_notifications'],
         queryFn: async () => {
             const res = await api.get('/users/me/noti/');
+            console.log(res)
             const notifs = res.data?.results || (res as any).results || res.data || [];
             const unread = res.data?.total_unread || (res as any).total_unread || 0
             setInitial(notifs, unread);
@@ -31,7 +32,6 @@ export const useInitNotifications = () => {
         const ws = new WebSocket(`ws://127.0.0.1:8000/ws/notifications/`);
         
         ws.onmessage = (event) => {
-            console.log("🔥 Nhận tin từ WS:", event.data);
             try {
                 const payload = JSON.parse(event.data);
                 

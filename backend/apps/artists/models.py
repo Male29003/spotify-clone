@@ -24,7 +24,7 @@ class Artist(BaseModel, BlockableMixin):
     # user của artist
     user = models.OneToOneField(
         User, 
-        on_delete=models.SET_NULL, 
+        on_delete=models.CASCADE, 
         related_name="artist_profile",
         null=True,
         blank=True

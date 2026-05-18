@@ -7,6 +7,7 @@ import {
     MicExternalOnOutlined,
     AutoAwesomeMosaicOutlined,
     ManageAccountsOutlined,
+    PeopleAltOutlined,
 } from '@mui/icons-material';
 
 export const ADMIN_PERMISSION_LIST = [
@@ -67,7 +68,7 @@ export const AdminMenu = [
     {
         key: 'users',
         label: 'User',
-        icon: <ManageAccountsOutlined />,
+        icon: <PeopleAltOutlined />,
         path: "/admin/users",
     },
     

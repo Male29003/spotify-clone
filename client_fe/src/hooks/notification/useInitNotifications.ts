@@ -51,6 +51,10 @@ export const useSystemWebSocket = () => {
                         queryClient.invalidateQueries({ queryKey: ['trending_tracks'] });
                         queryClient.invalidateQueries({ queryKey: ['favourite_tracks'] }); 
                         queryClient.invalidateQueries({ queryKey: ['recent_tracks'] }); 
+                        queryClient.invalidateQueries({ queryKey: ['playlists'] }); 
+                        queryClient.invalidateQueries({ queryKey: ['playlist_detail'] }); 
+                        queryClient.invalidateQueries({ queryKey: ['artist_detail'] }); 
+                        queryClient.invalidateQueries({ queryKey: ['recent_tracks'] }); 
                         queryClient.invalidateQueries({ queryKey: ['recommended_tracks'] }); 
                         // ngắt phát nhạc
                         const isPlayingTarget = playerState.currentTrack?.short_id === payload.short_id;
@@ -74,6 +78,9 @@ export const useSystemWebSocket = () => {
                         queryClient.invalidateQueries({ queryKey: ['favourite_releases'] });
                         queryClient.invalidateQueries({ queryKey: ['recent-releases'] });
                         queryClient.invalidateQueries({ queryKey: ['recommended-releases'] });
+                        queryClient.invalidateQueries({ queryKey: ['artist_detail'] }); 
+                        queryClient.invalidateQueries({ queryKey: ['playlists'] }); 
+                        queryClient.invalidateQueries({ queryKey: ['playlist_detail'] }); 
                         
                         // ngắt phát nhạc
                         const isPlayingTarget = playerState.currentTrack?.release_short_id === payload.short_id;
@@ -95,6 +102,9 @@ export const useSystemWebSocket = () => {
                 else if (action === 'ARTIST_BLOCKED' || action === 'ARTIST_UNBLOCKED') {
                     queryClient.invalidateQueries({ queryKey: ['music'] });
                     queryClient.invalidateQueries({ queryKey: ['releases'] });
+                    queryClient.invalidateQueries({ queryKey: ['playlist_detail'] }); 
+                    queryClient.invalidateQueries({ queryKey: ['playlists'] }); 
+
                     const playerState = usePlayerStore.getState();
                     const currentPath = window.location.pathname;
 

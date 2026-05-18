@@ -5,6 +5,7 @@ from .models import Track
 from ..genres.serializers import GenreSerializer
 from ..core.models import R2ImageField
 from ..core.validators import check_file_security
+from django.core.files.base import ContentFile
 
 class ShortTrackSerializer(serializers.ModelSerializer):
     artist = ShortArtistSerializer(read_only=True, many=False)
@@ -65,6 +66,8 @@ class TrackSerializer(serializers.ModelSerializer):
     file_url = serializers.SerializerMethodField()
     preview_file = serializers.SerializerMethodField()
     image = R2ImageField(source='release.image', read_only=True)
+    lyrics_file = serializers.SerializerMethodField()
+    lyrics = serializers.FileField(write_only=True, required=False, allow_null=True)
 
     class Meta:
         model = Track
@@ -86,8 +89,19 @@ class TrackSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         if request and hasattr(obj.file_url, 'url'):
             return request.build_absolute_uri(obj.file_url.url)
-            
         return url_string
+    
+    def get_lyrics_file(self, obj):
+        if not obj.lyrics_file:
+            return None
+        url_string = str(obj.lyrics_file)
+        if url_string.startswith('http'):
+            return url_string
+        request = self.context.get('request')
+        if request and hasattr(obj.lyrics_file, 'url'):
+            return request.build_absolute_uri(obj.lyrics_file.url)
+        return url_string
+    
     def get_preview_file(self, obj):
         if not obj.preview_file:
             return None
@@ -98,6 +112,17 @@ class TrackSerializer(serializers.ModelSerializer):
         if request and hasattr(obj.preview_file, 'url'):
             return request.build_absolute_uri(obj.preview_file.url)
         return url_string
+
+    def update(self, instance, validated_data):
+        if 'lyrics' in validated_data:
+            new_file = validated_data.pop('lyrics')
+            # Xóa file cũ để dọn rác
+            if instance.lyrics_file:
+                instance.lyrics_file.delete(save=False)
+            # Gán thẳng file mới
+            instance.lyrics_file = new_file
+
+        return super().update(instance, validated_data)
 
     def to_representation(self, instance):
         response = super().to_representation(instance)

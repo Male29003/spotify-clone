@@ -24,7 +24,9 @@ export const studioMusicApi = {
 
     // Cập nhật thông tin bài hát
     patch: (short_id: string, data: any) => {
-        return api.patch(`/music/me/manage/${short_id}/`, data);
+        return api.patch(`/music/me/manage/${short_id}/`, data, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
     },
     
     // lay6ấy unassigned

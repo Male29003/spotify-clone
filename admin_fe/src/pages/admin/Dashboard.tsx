@@ -1,26 +1,58 @@
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
-  BarChart, Bar, 
+  BarChart, Bar, PieChart, Pie, Cell, Legend
 } from 'recharts';
 import { useAdminDashboardStats } from '../../hooks/analytics/useAnalytics';
 import { formatCurrency, formatNumber } from '../../utils/formatters';
-import { useAuthStore } from '../../stores/auth/authStore';
+import { useMemo, useState } from 'react';
 
 const AdminDashboard = () => {
-  const { data, isLoading } = useAdminDashboardStats();
+  // quản lý state tgian
+    const [timeRange, setTimeRange] = useState("30days");
+    const dateParams = useMemo(() => {
+        const endDate = new Date();
+        const startDate = new Date();
+        
+        if (timeRange === "7days") startDate.setDate(endDate.getDate() - 7);
+        else if (timeRange === "30days") startDate.setDate(endDate.getDate() - 30);
+        else if (timeRange === "1year") startDate.setFullYear(endDate.getFullYear() - 1);
+        else if (timeRange === "all") startDate.setFullYear(2025);
+
+        return {
+            start_date: startDate.toISOString().split('T')[0],
+            end_date: endDate.toISOString().split('T')[0]
+        };
+    }, [timeRange]);
+  const { data, isLoading } = useAdminDashboardStats(dateParams);
 
   if (isLoading || !data) {
     return <div className="p-10 text-center text-lg font-semibold text-text-main">Loading data......</div>;
   }
   const totalRevenue = (data as any).revenue_chart?.reduce((sum: number, item: any) => sum + item.revenue, 0) || 0;
   const totalNewUsers = (data as any).user_growth_chart?.reduce((sum: number, item: any) => sum + item.new_users, 0) || 0;
+  const topCountries = (data as any).top_countries || [];
+  const COLORS = ['#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#6b7280'];
+
 
   return (
     <div className="p-6 bg-base min-h-screen"> 
-      <h1 className="text-3xl font-bold text-text-main mb-8">
-        System Overview (Last 30 days)
-      </h1>
-      
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 border-b border-border pb-4">
+          <div>
+              <h1 className="text-3xl font-bold text-text-main mb-2">System Overview (Last 30 days)</h1>
+          </div>
+          
+          {/* lọc tgian thống kê */}
+          <select 
+              value={timeRange}
+              onChange={(e) => setTimeRange(e.target.value)}
+              className="bg-panel text-text-main px-4 py-2 border border-border rounded-lg outline-none cursor-pointer focus:border-highlight"
+          >
+              <option value="7days">Last 7 Days</option>
+              <option value="30days">Last 30 Days</option>
+              <option value="1year">Last 1 Year</option>
+              <option value="all">All Time</option>
+          </select>
+      </div>
       {/* tổng quan (thu nhập - user mới - top ns)*/}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div className="bg-panel p-6 rounded-xl shadow-sm border border-border">
@@ -52,7 +84,7 @@ const AdminDashboard = () => {
       </div>
 
       {/* Biểu đồ */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         {/* Doanh thu */}
         <div className="min-w-0 bg-panel p-6 rounded-xl shadow-sm border border-border">
           <h3 className="text-lg font-bold text-text-main mb-4">
@@ -66,7 +98,7 @@ const AdminDashboard = () => {
               >
                 <defs>
                   <linearGradient 
-                  id="colorRevenue" 
+                    id="colorRevenue" 
                     x1="0" 
                     y1="0" 
                     x2="0" 
@@ -148,6 +180,51 @@ const AdminDashboard = () => {
           </div>
         </div>
 
+        {/* bieuểu dồ theo quốc gia */}
+        <div className="min-w-0 bg-panel p-6 rounded-xl shadow-sm border border-border">
+          <h3 className="text-lg font-bold text-text-main mb-4">
+            Global Audience
+          </h3>
+          <div className="h-72 flex items-center justify-center">
+            {topCountries.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                        <Pie
+                            data={topCountries}
+                            cx="50%"
+                            cy="45%"
+                            innerRadius={70}
+                            outerRadius={95}
+                            paddingAngle={5}
+                            dataKey="value"
+                            stroke="none"
+                        >
+                            {topCountries.map((entry: any, index: number) => (
+                                <Cell 
+                                    key={`cell-${index}`} 
+                                    fill={entry.name === 'Unknown' ? COLORS[5] : COLORS[index % (COLORS.length - 1)]} 
+                                />
+                            ))}
+                        </Pie>
+                        <RechartsTooltip 
+                            formatter={(value: any) => [formatNumber(value), "Total Streams"]}
+                            contentStyle={{ backgroundColor: 'var(--theme-panel)', borderColor: 'var(--theme-border)', color: 'var(--theme-text-main)', borderRadius: '8px', fontWeight: 'bold' }}
+                        />
+                        <Legend 
+                            verticalAlign="bottom" 
+                            height={36}
+                            iconType="circle"
+                            formatter={(value) => <span className="text-text-main text-sm font-medium">{value}</span>}
+                        />
+                    </PieChart>
+                </ResponsiveContainer>
+            ) : (
+                <div className="w-full h-full flex items-center justify-center text-sm text-text-sub italic border-2 border-dashed border-border rounded-xl">
+                    No global data available.
+                </div>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* BXH  */}

@@ -4,7 +4,7 @@ import { useShallow } from 'zustand/react/shallow'
 import PlayerVolume from './Volume';
 import PlayerTrackInfo from './TrackInfo';
 import PlayerControls from './PlayerControls';
-import { useStreamAudio } from '../../hooks/track/useTracks';
+import { useRecordHistory, useStreamAudio } from '../../hooks/track/useTracks';
 import { formatDuration } from '../../utils/formatters'
 import LyricsWindow from '../../components/shared/ui/LyricsSide';
 import { createPortal } from 'react-dom'
@@ -24,7 +24,12 @@ const Player = () => {
     );
     const { audioUrl, isLoading } = useStreamAudio(currentTrack?.short_id, isPlaying);
     const audioRef = useRef<HTMLAudioElement>(null);
-    
+    // quản lý chức năng record listen
+    const [ hasRecorded, setHasRecorded ] = useState(false)
+    const { mutate: recordHistory, isPending } = useRecordHistory()
+    const actualPlayedRef = useRef(0)
+    const lastTimeRef = useRef(0)
+
     // state hiện cửa sổ lời nhạc
     const [ showLyrics, setShowLyrics ] = useState(false)
     const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
@@ -33,12 +38,60 @@ const Player = () => {
         // Chỉ chạy 1 lần khi Player được mount vào DOM
         setPortalTarget(document.getElementById('lyrics-portal-target'));
     }, []);
+    useEffect(() => {
+        setHasRecorded(false)
+    }, [currentTrack])
+
+    // ktra thời gian phát để cập nhật chính xác record listen
+    const handleAudioTimeUpdate = (e: React.SyntheticEvent<HTMLAudioElement>) => {
+        const audioElement = e.currentTarget;
+        const currentTime = audioElement.currentTime;
+        const audioDuration = audioElement.duration;
+
+        // tgian nghe thực tế dc tính bằng cộng dồn 
+        // theo dự đoán nếu user ko tua -> dif < 1.5
+        const diff = currentTime - lastTimeRef.current
+        if(diff > 0 && diff < 1.5){
+            actualPlayedRef.current += diff
+        }
+        // nếu là lặp bài 
+        if(diff < -1){
+            // nếu tgian cập nhật độ ngột từ cuối bài -> đầu bài -> đang loop -> tính tgian lại 
+            if(currentTime < 1 && lastTimeRef.current > audioDuration - 2){
+                actualPlayedRef.current = 0
+                setHasRecorded(false)
+            }
+        }
+        // cập nhật tgian nghe cuối cùng
+        lastTimeRef.current = currentTime
+
+        if (!isSeeking) {
+            setPlayedSeconds(currentTime);
+            if (!duration || isNaN(duration)) {
+                setDuration(audioDuration);
+            }
+        }
+
+        if (!hasRecorded && audioDuration > 0 && currentTrack) {
+            // tính lượt nghe khi nghe đủ 45s hoặc
+            // nghe 80% bài hát nếu bài đó hơi ngắn
+            const targetTime = Math.min(45, audioDuration * 0.8);
+
+            if (actualPlayedRef.current >= targetTime && !isPending) {
+                setHasRecorded(true);
+                recordHistory(currentTrack.short_id);
+            }
+        }
+    };
 
     // Quản lý thông tin nhạc
     const [duration, setDuration] = useState(0);
     const [playedSeconds, setPlayedSeconds] = useState(0);
     // Quản lý duration và tgain phát
     useEffect(() => {
+        setHasRecorded(false);
+        actualPlayedRef.current = 0;
+        lastTimeRef.current = 0;
         setPlayedSeconds(0);
         setDuration(0);
     }, [currentTrack?.short_id]);
@@ -129,7 +182,7 @@ const Player = () => {
         <>
             {portalTarget && createPortal(
                 <div 
-                    className={`absolute inset-0 z-[100] bg-base transition-transform duration-500 ease-in-out transform ${
+                    className={`absolute inset-0 z-80 bg-base transition-transform duration-500 ease-in-out transform ${
                         showLyrics ? 'translate-y-0' : 'translate-y-full'
                     }`}
                 >
@@ -169,14 +222,7 @@ const Player = () => {
                     onLoadedMetadata={(e) => 
                         setDuration(e.currentTarget.duration)
                     }
-                    onTimeUpdate={(e) => {
-                        if (!isSeeking) {
-                            setPlayedSeconds(e.currentTarget.currentTime);
-                            if (!duration || isNaN(duration)) {
-                                setDuration(e.currentTarget.duration);
-                            }
-                        }
-                    }}
+                    onTimeUpdate={handleAudioTimeUpdate}
                     onEnded={handleFinishedSong}
                     autoPlay={isPlaying}
                 />

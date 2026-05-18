@@ -2,6 +2,7 @@ import { Delete, VerifiedOutlined } from "@mui/icons-material";
 import React, { useState } from "react";
 import { useGetFeaturedArtists } from "../../hooks/release/useReleases";
 import { useDebounce } from "../../hooks/useDebounce";
+import Loader from "../../components/shared/ui/Loader";
 
 export interface FeaturedArtistItem {
     id?: number | string;
@@ -16,9 +17,11 @@ const FeaturedArtistInput = ({ selectedArtists, onChange }: {
     const [isFocused, setIsFocused] = useState(false);
 
     const debouncedQuery = useDebounce<string>(query, 500);
-    const { data, isFetching } = useGetFeaturedArtists(debouncedQuery);
+    const { data, isLoading } = useGetFeaturedArtists(debouncedQuery);
 
     const results = (data as any)?.results || data?.data || [];
+    
+    if(isLoading) return <Loader />
 
     const handleAdd = (artist: FeaturedArtistItem) => {
         if (!selectedArtists.find(a => a.name === artist.name)) {

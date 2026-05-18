@@ -67,7 +67,7 @@ class UserDailyStat(models.Model):
 class DownloadHistory(models.Model):
     user = models.ForeignKey(
         User, 
-        on_delete=models.SET_NULL, 
+        on_delete=models.CASCADE, 
         null=True
     )
     track = models.ForeignKey(

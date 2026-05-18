@@ -331,11 +331,17 @@ class StudioReleaseListCreateView(generics.ListCreateAPIView):
             
             # 🔥 CHẶN FILE NHẠC TRONG VÒNG LẶP TRƯỚC KHI LÀM BẤT CỨ ĐIỀU GÌ
             for key, value in request.FILES.items():
-                if 'file' in key: # Nếu là file nhạc
+                if key.endswith('[file]'): # Chỉ check file nhạc (đuôi key là [file])
                     check_file_security(
                         value, 
                         50, 
                         ['.mp3', '.wav', '.flac']
+                    )
+                elif key.endswith('[lyrics_file]'): # Check riêng cho file lời nhạc
+                    check_file_security(
+                        value, 
+                        2, # File text cực nhẹ, cho 2MB là dư sức qua cầu
+                        ['.lrc']
                     )
 
             # Tạo release trc
@@ -363,64 +369,88 @@ class StudioReleaseListCreateView(generics.ListCreateAPIView):
             for index, track_data in track_data_dic.items():
                 track_title = track_data.get('title')
                 genre_id = track_data.get('genre')
-                audio_file = request.FILES.get(f"releases[{index}][file]") # Lấy file âm thanh
+                lyrics_file_upload = request.FILES.get(f"releases[{index}][lyrics_file]")
+                existing_short_id = track_data.get('existing_short_id')
 
-                if audio_file:
-                    # FIX BUG: Dùng Pydub đọc trực tiếp file gốc từ RAM
-                    audio_file.seek(0)
+                if existing_short_id:
                     try:
-                        audio_segment = AudioSegment.from_file(audio_file)
-                        # Tính thời lượng
-                        duration_timedelta = datetime.timedelta(seconds=int(len(audio_segment) / 1000))
+                        track = Track.objects.get(short_id=existing_short_id, artist=artist_profile)
+                        track.release = release
+                        track.order_index = int(index)
+
+                        if track_title: 
+                            track_title = track.title
+                        if genre_id:
+                            track.genre_id = genre_id
+                        if lyrics_file_upload:
+                            if track.lyrics_file:
+                                track.lyrics_file.delete(save=False)
+                            track.lyrics_file = lyrics_file_upload
                         
-                        # Cắt 30s đầu
-                        preview_segment = audio_segment[:30 * 1000]
-                        buffer = io.BytesIO()
-                        preview_segment.export(buffer, format='mp3', bitrate='128k')
-                        # Đặt tên file preview để lưu
-                        preview_name = f"preview_{generate_short_id()}.mp3"
-                        preview_content = ContentFile(buffer.getvalue(), name=preview_name)
-                    except Exception as e:
-                        print(f"Lỗi xử lý âm thanh: {e}")
-                        duration_timedelta = None
-                        preview_content = None
+                        track.save()
+                        feat_artists = request.POST.getlist(f'releases[{index}][featured_artists][]')
+                        if feat_artists is not None: # Có truyền mảng lên
+                            track.featured_artists.clear()
+                            for item in feat_artists:
+                                if item.isdigit():
+                                    try: track.featured_artists.add(Artist.objects.get(id=int(item)))
+                                    except Artist.DoesNotExist: pass
+                                else:
+                                    ghost_artist, _ = Artist.objects.get_or_create(
+                                        stage_name__iexact=item,
+                                        defaults={'stage_name': item, 'is_claimed': False, 'short_id': generate_short_id()}
+                                    )
+                                    track.featured_artists.add(ghost_artist)
+                                    
+                    except Track.DoesNotExist:
+                        print(f"⚠️ Không tìm thấy bài hát có sẵn: {existing_short_id}")
+                        continue
+                else:
+                    audio_file = request.FILES.get(f"releases[{index}][file]")
+                    if audio_file:
+                        audio_file.seek(0)
+                        try:
+                            audio_segment = AudioSegment.from_file(audio_file)
+                            duration_timedelta = datetime.timedelta(seconds=int(len(audio_segment) / 1000))
+                            
+                            preview_segment = audio_segment[:30 * 1000]
+                            buffer = io.BytesIO()
+                            preview_segment.export(buffer, format='mp3', bitrate='128k')
+                            preview_name = f"preview_{generate_short_id()}.mp3"
+                            preview_content = ContentFile(buffer.getvalue(), name=preview_name)
+                        except Exception as e:
+                            print(f"Lỗi xử lý âm thanh: {e}")
+                            duration_timedelta = None
+                            preview_content = None
 
-                    # Reset con trỏ file trước khi giao cho Django & Fernet
-                    audio_file.seek(0) 
+                        audio_file.seek(0) 
 
-                    # Lúc này model save() sẽ tự động mã hóa cái audio_file
-                    track = Track.objects.create(
-                        release=release,
-                        artist=artist_profile,
-                        title=track_title,
-                        file_url=audio_file,
-                        genre_id=genre_id,
-                        duration=duration_timedelta,
-                        preview_file=preview_content,
-                        is_active=is_active,
-                        order_index=int(index)
-                    )
+                        track = Track.objects.create(
+                            release=release,
+                            artist=artist_profile,
+                            title=track_title,
+                            file_url=audio_file,
+                            genre_id=genre_id,
+                            lyrics_file=lyrics_file_upload,
+                            duration=duration_timedelta,
+                            preview_file=preview_content,
+                            is_active=is_active,
+                            order_index=int(index)
+                        )
 
-                    # Xử lý Featured Artists (Giữ nguyên logic của ông)
-                    feat_artists = request.POST.getlist(f'releases[{index}][featured_artists][]')
-                    if feat_artists:
-                        for item in feat_artists:
-                            if item.isdigit(): 
-                                try:
-                                    artist_obj = Artist.objects.get(id=int(item))
-                                    track.featured_artists.add(artist_obj)
-                                except Artist.DoesNotExist:
-                                    pass
-                            else:
-                                ghost_artist, _ = Artist.objects.get_or_create(
-                                    stage_name__iexact=item,
-                                    defaults={
-                                        'stage_name': item,
-                                        'is_claimed': False,
-                                        'short_id': generate_short_id()
-                                    }
-                                )
-                                track.featured_artists.add(ghost_artist)
+                        # Xử lý Featured Artists cho bài mới
+                        feat_artists = request.POST.getlist(f'releases[{index}][featured_artists][]')
+                        if feat_artists:
+                            for item in feat_artists:
+                                if item.isdigit(): 
+                                    try: track.featured_artists.add(Artist.objects.get(id=int(item)))
+                                    except Artist.DoesNotExist: pass
+                                else:
+                                    ghost_artist, _ = Artist.objects.get_or_create(
+                                        stage_name__iexact=item,
+                                        defaults={'stage_name': item, 'is_claimed': False, 'short_id': generate_short_id()}
+                                    )
+                                    track.featured_artists.add(ghost_artist)
             
             # thông báo admin nếu là submit lên pending
             if is_pending:

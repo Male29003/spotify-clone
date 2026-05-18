@@ -77,7 +77,7 @@ export const useMarkAsRead = () => {
 
 // ========================= For admin =========================
 export const useGetUsers = (
-    params: { search?: string, page?: number, limit?: number, is_active: boolean, is_staff: boolean },
+    params: { search?: string, page?: number, limit?: number, is_premium?: boolean, is_active: boolean, is_staff: boolean },
     isEnabled: boolean = true
 ) => {
     return useQuery({
