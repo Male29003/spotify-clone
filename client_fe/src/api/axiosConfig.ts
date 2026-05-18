@@ -56,8 +56,8 @@ api.interceptors.response.use(
         if (!originalRequest || originalRequest.url.includes('/login/') || originalRequest.url.includes('/refresh/')) {
             return Promise.reject(error);
         }
-
-        if (error.response?.status === 401 && !originalRequest._retry) {
+        const authStore = useAuthStore.getState();
+        if (error.response?.status === 401 && authStore.isAuthenticated && !originalRequest._retry) {
             
             if (isRefreshing) {
                 return new Promise(function (resolve, reject) {

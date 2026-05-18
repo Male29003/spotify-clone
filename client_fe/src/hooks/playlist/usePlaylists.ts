@@ -11,11 +11,11 @@ export const useAllPlaylists = () => {
 };
 
 export const useMyPlaylists = () => {
-    const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
+    const { isAuthenticated, isLoaded } = useAuthStore(state => state)
     return useQuery({
         queryKey: ['my_created_playlists'],
         queryFn: () => playlistApi.getLibrary(),
-        enabled: !!isAuthenticated,
+        enabled: !!isAuthenticated && isLoaded,
     });
 }
 
