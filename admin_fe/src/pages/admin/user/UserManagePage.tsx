@@ -20,6 +20,11 @@ const STATUS_FILTER =[
     { id: 'blocked', label: 'Blocked' },
 ]
 
+const TYPE_FILTER = [
+    { id: 'free',  label: 'Free' },
+    { id: 'premium', label: 'Premium' },
+]
+
 const UsersManagePage: React.FC = () => {
     const [isOpenModal, setIsOpenModal] = useState(false);
     const [selectedId, setSelectedId] = useState<number | null>(null)
@@ -27,6 +32,7 @@ const UsersManagePage: React.FC = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     const query = searchParams.get('q') || '';
     const statusFilter = searchParams.get('status') || 'active';
+    const typeFilter = searchParams.get('type') || 'free';
 
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(10);
@@ -42,6 +48,7 @@ const UsersManagePage: React.FC = () => {
         page: page, 
         limit: limit,
         is_active: statusFilter === 'active' ? true : false,
+        is_premium: typeFilter === 'premium' ? true : false,
         is_staff: false
     });
 
@@ -147,6 +154,15 @@ const UsersManagePage: React.FC = () => {
                         onChange={(val) => {
                             setPage(1);
                             updateParams({ status: val });
+                        }}
+                    />
+                    <Filter
+                        label='Type'
+                        value={typeFilter}
+                        options={TYPE_FILTER}
+                        onChange={(val) => {
+                            setPage(1);
+                            updateParams({ type: val });
                         }}
                     />
                 </div>

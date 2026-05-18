@@ -281,6 +281,9 @@ class ArtistDetailProfileSerializer(ShortUserSerializer):
 class AdminUserSerializer(ShortUserSerializer):
     class Meta(ShortUserSerializer.Meta):
         fields = ShortUserSerializer.Meta.fields + [
+            'is_premium',
+            'is_staff',
+            'is_superuser',
             "is_active",
         ]
 

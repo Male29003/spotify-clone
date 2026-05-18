@@ -7,6 +7,7 @@ export const listenerMusicApi = {
         });
         return response; 
     },
+    recordHistory: (short_id: string) => api.post(`music/history/record/`, { short_id }),
 
     get: (params?: { search?: string; page?: number; limit?: number }) => {
         return api.get('/music/track/', { params })
@@ -16,7 +17,6 @@ export const listenerMusicApi = {
     getRecent: () => api.get('/music/recent/'),
     getTrending: () => api.get('/music/get-trending/'),
     getRecommended: () => api.get('music/recommend/'),
-    recordHistory: (short_id: string) => api.post(`music/history/record/`, { short_id }),
     toggleFavourite: (short_id: string) => api.post(`/music/track/${short_id}/favourite/`),
 
     download: (short_id: string, config?: any) => api.get(`/music/track/${short_id}/download/`, {

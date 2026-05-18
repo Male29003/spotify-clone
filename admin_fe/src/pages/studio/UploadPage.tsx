@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CloudUpload, Add, Delete, Image as ImageIcon, MusicNote, Save, CloseOutlined, CropOutlined } from '@mui/icons-material';
+import { CloudUpload, Add, Delete, Image as ImageIcon, MusicNote, Save, CloseOutlined, CropOutlined, FormatListBulletedOutlined } from '@mui/icons-material';
 import Cropper from 'react-easy-crop';
 import { CustomToast } from '../../components/shared/feedback/CustomToast';
 import { useGetAllGenresForArtists } from '../../hooks/genre/useGenre';
@@ -10,13 +10,17 @@ import type { FeaturedArtistItem } from '../../sections/upload_release/FeaturedA
 import FeaturedArtistInput from '../../sections/upload_release/FeaturedArtistInput';
 import { getCroppedImg } from '../../utils/cropImage';
 import { RELEASE_LIMITS } from '../../constants/constants';
+import { useGetUnassignedTracks } from '../../hooks/track/useTracks';
 
 interface ReleaseUpload {
     id: number;
+    existing_short_id?: string;
     title: string;
     file: File | null;
     genre_id: string;
     featured_artists: FeaturedArtistItem[];
+    lyrics_file: File | null;
+    existing_lyrics_file: string;
 }
 
 const UploadPage = () => {
@@ -26,13 +30,16 @@ const UploadPage = () => {
     const [releaseType, setReleaseType] = useState('Single');
     const [coverImage, setCoverImage] = useState<File | null>(null);
     const [coverPreview, setCoverPreview] = useState<string | null>(null);
+    const [showUnassignedMenu, setShowUnassignedMenu] = useState(false);
     const [releases, setReleases] = useState<ReleaseUpload[]>([
         { 
             id: Date.now(), 
             title: '', 
             file: null, 
             genre_id: '', 
-            featured_artists: [] 
+            featured_artists: [],
+            lyrics_file: null,
+            existing_lyrics_file: ''
         }
     ]);
 
@@ -45,14 +52,21 @@ const UploadPage = () => {
     const [zoom, setZoom] = useState(1);
     const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
 
-    // lấy thể loại
+    // lấy data - thể loại & nhạc lẻ
     const { data: genresData } = useGetAllGenresForArtists(); 
     const genres = genresData?.data || (genresData as any)?.results || genresData || [];
 
-    // cảnh báo thoat1 trang
+    const { data: unassignedData } = useGetUnassignedTracks();
+    const unassignedTracks = (unassignedData as any)?.results || unassignedData || [];
+    
+    const availableUnassigned = unassignedTracks.filter(
+        (track: any) => !releases.some(r => r.existing_short_id === track.short_id)
+    );
+
+    // cảnh báo thoát trang
     useEffect(() => {
         const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-            if (releaseTitle || coverImage || releases[0].file) {
+            if (releaseTitle || coverImage || releases[0].file || releases[0].existing_short_id) {
                 e.preventDefault();
                 e.returnValue = '';
             }
@@ -102,6 +116,7 @@ const UploadPage = () => {
     };
 
     //  ========================= xử lý nhạc ========================= 
+        // upload 1 bài hát mới
     const updateTrackFile = (id: number, file: File) => {
         // Validate Format
         if (!['audio/mpeg', 'audio/wav', 'audio/x-wav'].includes(file.type)) {
@@ -115,6 +130,22 @@ const UploadPage = () => {
 
         const defaultTitle = file.name.replace(/\.[^/.]+$/, ""); 
         setReleases(releases.map(t => t.id === id ? { ...t, file, title: t.title || defaultTitle } : t));
+    };
+        // chọn 1 bài hát có sẵn của artist
+    const handleAddExistingTrack = async (track: any) => {
+        const fileName = track.lyrics_file ? track.lyrics_file.split('/').pop() : '';
+        setReleases([...releases, { 
+            id: Date.now(), 
+            title: track.title, 
+            file: null,
+            genre_id: track.genre?.id?.toString() || '', 
+            featured_artists: track.featured_artists || [],
+            lyrics_file: null,
+            existing_lyrics_file: fileName,
+            existing_short_id: track.short_id
+        }]);
+        CustomToast.success(`Added "${track.title}" to tracklist!`);
+        setShowUnassignedMenu(false);
     };
 
     // Quản lý chức năng
@@ -131,22 +162,17 @@ const UploadPage = () => {
         if (releases.length === 0) 
             return CustomToast.error('You must add at least one track!');
         
-        const invalidTrack = releases.find(t => !t.title.trim() || !t.file);
-        if (invalidTrack) 
-            return CustomToast.error('All tracks must have a title and an audio file!');
+        const invalidTrack = releases.find(t => !t.title.trim() || (!t.file && !t.existing_short_id));
+        if (invalidTrack) return CustomToast.error('All tracks must have a title and an audio file!');
         
         const invalidGenre = releases.find(t => !t.genre_id);
-        if (invalidGenre) 
-            return CustomToast.error('Please select a genre for all tracks!');
-        
-        // Ktra số lượng bài
+        if (invalidGenre) return CustomToast.error('Please select a genre for all tracks!');
         
         if (releaseType === 'EP' && releases.length < RELEASE_LIMITS.ep.min) 
             return CustomToast.error(`An EP must have at least ${RELEASE_LIMITS.ep.min} songs!`);
-        if (releaseType === 'Album' && releases.length <  RELEASE_LIMITS.album.max) 
+        if (releaseType === 'Album' && releases.length < RELEASE_LIMITS.album.max) 
             return CustomToast.error(`An Album must have at least ${RELEASE_LIMITS.album.max} songs!`);
 
-        // tạo FormData
         const formData = new FormData();
         formData.append('action', actionType); 
         formData.append('title', releaseTitle);
@@ -155,10 +181,20 @@ const UploadPage = () => {
         
         releases.forEach((track, index) => {
             formData.append(`releases[${index}][title]`, track.title);
-            formData.append(`releases[${index}][file]`, track.file as Blob);
             
             if (track.genre_id) {
                 formData.append(`releases[${index}][genre]`, track.genre_id);
+            }
+
+            if (track.lyrics_file) {
+                formData.append(`releases[${index}][lyrics_file]`, track.lyrics_file as Blob);
+            }
+
+            // Gửi file mới hoặc ID của bài cũ
+            if (track.existing_short_id) {
+                formData.append(`releases[${index}][existing_short_id]`, track.existing_short_id);
+            } else if (track.file) {
+                formData.append(`releases[${index}][file]`, track.file as Blob);
             }
 
             if (track.featured_artists && track.featured_artists.length > 0) {
@@ -284,80 +320,174 @@ const UploadPage = () => {
                 <div className="flex flex-col gap-4 mt-4">
                     <div className="flex items-center justify-between border-b border-border pb-2">
                         <h2 className="text-2xl font-bold text-text-main">Tracklist</h2>
-                        <button 
-                            onClick={() => setReleases([...releases, { id: Date.now(), title: '', file: null, genre_id: '', featured_artists: [] }])}
-                            disabled={!canAddSong}
-                            className={`flex items-center gap-1 text-sm font-bold px-4 py-2 rounded-full transition-transform 
-                                ${canAddSong ? 'text-text-dark bg-text-main hover:scale-105' : 'bg-search text-text-sub opacity-50 cursor-not-allowed' }`}
-                        >
-                            <Add fontSize="small" /> Add song
-                        </button>
+                        <div className="flex gap-2">
+                            {/* Nút chọn nhạc có sẵn */}
+                            <button 
+                                onClick={() => setShowUnassignedMenu(!showUnassignedMenu)}
+                                disabled={!canAddSong}
+                                className={`flex items-center gap-1 text-sm font-bold px-4 py-2 rounded-full transition-transform 
+                                    ${canAddSong ? (showUnassignedMenu ? 'bg-panel text-text-main border border-border' : 'bg-highlight/10 text-highlight hover:bg-highlight hover:text-panel') : 'bg-search text-text-sub opacity-50 cursor-not-allowed' }`}
+                            >
+                                {showUnassignedMenu ? 
+                                    <CloseOutlined fontSize="small" /> 
+                                : 
+                                    <FormatListBulletedOutlined fontSize="small" />
+                                } 
+                                {showUnassignedMenu ? 'Cancel' : 'Choose Existing'}
+                            </button>
+                            
+                            <button 
+                                onClick={() => setReleases([...releases, { id: Date.now(), title: '', file: null, genre_id: '', featured_artists: [], lyrics_file: null, existing_lyrics_file: '' }])}
+                                disabled={!canAddSong}
+                                className={`flex items-center gap-1 text-sm font-bold px-4 py-2 rounded-full transition-transform 
+                                    ${canAddSong ? 'text-text-dark bg-text-main hover:scale-105' : 'bg-search text-text-sub opacity-50 cursor-not-allowed' }`}
+                            >
+                                <Add fontSize="small" /> Add song
+                            </button>
+                        </div>
                     </div>
                     
                     {!canAddSong && 
                         <p className='text-sm text-error text-right'>Maximum songs reached for {releaseType}.</p>
                     }
 
+                    {/* Menu chọn nhạc có sẵn */}
+                    {showUnassignedMenu && (
+                        <div className="bg-panel border border-border p-5 rounded-xl flex flex-col mb-2 animate-slideDown shadow-sm">
+                            <h4 className="font-bold text-text-main text-lg border-b border-border pb-2 mb-4">
+                                Unassigned Tracks
+                            </h4>
+                            <div className="flex-1 overflow-y-auto custom-scrollbar bg-base rounded-lg border border-border/50 p-2 max-h-[250px]">
+                                {availableUnassigned.length === 0 ? (
+                                    <p className="text-xs text-center text-text-sub mt-4 py-4">No unassigned tracks available.</p>
+                                ) : (
+                                    <div className="space-y-1">
+                                        {availableUnassigned.map((t: any) => (
+                                            <div key={t.short_id} className="flex justify-between items-center p-3 hover:bg-panel rounded-lg group border border-transparent hover:border-border transition-colors">
+                                                <div className="flex flex-col truncate pr-2">
+                                                    <span className="text-sm font-bold text-text-main truncate">{t.title}</span>
+                                                    <span className="text-xs text-text-sub">{t.genre?.name || 'No genre'}</span>
+                                                </div>
+                                                <button 
+                                                    onClick={() => handleAddExistingTrack(t)}
+                                                    className="text-xs bg-highlight/10 text-highlight px-3 py-1.5 rounded-full font-bold opacity-0 group-hover:opacity-100 transition-opacity hover:bg-highlight hover:text-panel"
+                                                >
+                                                    + Add
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
                     <div className="flex flex-col gap-4">
                         {releases.map((track, index) => (
-                            <div key={track.id} className="bg-search p-5 rounded-xl flex gap-4 group border border-border items-start shadow-sm hover:border-text-sub transition-colors">
-                                <span className="text-text-sub font-bold w-6 text-center mt-2 text-lg">{index + 1}</span>
+                            <div key={track.id} className="bg-search p-5 rounded-xl flex flex-col gap-4 group border border-border shadow-sm hover:border-text-sub transition-colors">
                                 
-                                <div className="flex-1 flex flex-col gap-4">
-                                    <input 
-                                        type="text" 
-                                        value={track.title}
-                                        onChange={e => setReleases(releases.map(t => t.id === track.id ? { ...t, title: e.target.value } : t))}
-                                        placeholder={`Track ${index + 1} Title`}
-                                        className="bg-transparent text-text-main font-bold text-xl outline-none border-b border-border focus:border-highlight pb-1"
-                                    />
+                                <div className="flex gap-4 items-start w-full">
+                                    <span className="text-text-sub font-bold w-6 text-center mt-2 text-lg">{index + 1}</span>
                                     
+                                    <div className="flex-1 flex flex-col gap-4">
+                                        <input 
+                                            type="text" 
+                                            value={track.title}
+                                            onChange={e => setReleases(releases.map(t => t.id === track.id ? { ...t, title: e.target.value } : t))}
+                                            placeholder={`Track ${index + 1} Title`}
+                                            className="bg-transparent text-text-main font-bold text-xl outline-none border-b border-border focus:border-highlight pb-1"
+                                        />
+                                        
+                                        <div className="flex items-center gap-4">
+                                            {/* Nếu là bài có sẵn thì khóa upload, hiện thông báo */}
+                                            {track.existing_short_id ? (
+                                                <div className="flex items-center gap-2 bg-panel px-4 py-2 rounded-lg border border-highlight shadow-sm text-highlight">
+                                                    <MusicNote fontSize="small" />
+                                                    <span className="text-sm font-semibold">Existing Audio Linked</span>
+                                                </div>
+                                            ) : (
+                                                <label className="cursor-pointer hover:text-text-main flex items-center gap-2 bg-panel px-4 py-2 rounded-lg border border-border hover:border-highlight transition-colors shadow-sm">
+                                                    <MusicNote fontSize="small" className={track.file ? "text-highlight" : "text-text-sub"} /> 
+                                                    <span className="text-sm font-semibold">
+                                                        {track.file ? "Change Audio" : "Upload Audio *"}
+                                                    </span>
+                                                    <input 
+                                                        type="file" 
+                                                        className="hidden" 
+                                                        accept="audio/mpeg, audio/wav, audio/x-wav"
+                                                        onChange={e => e.target.files?.[0] && updateTrackFile(track.id, e.target.files[0])}
+                                                    />
+                                                </label>
+                                            )}
+                                            
+                                            <span className={`text-sm truncate max-w-[250px] ${track.file || track.existing_short_id ? 'text-text-main font-medium' : 'text-text-sub italic'}`}>
+                                                {track.existing_short_id ? "Audio is safely stored on server" : (track.file?.name || "No file selected (Max 20MB)")}
+                                            </span>
+                                        </div>
+
+                                        <FeaturedArtistInput 
+                                            selectedArtists={track.featured_artists || []}
+                                            onChange={(newArtists) => setReleases(releases.map(t => t.id === track.id ? { ...t, featured_artists: newArtists } : t))}
+                                        />
+                                    </div>
+
+                                    <div className="flex flex-col gap-4 items-end ml-2">
+                                        <select 
+                                            value={track.genre_id}
+                                            onChange={e => setReleases(releases.map(t => t.id === track.id ? {...t, genre_id: e.target.value } : t))}
+                                            className="bg-panel text-text-main font-medium text-sm outline-none border border-border rounded-lg px-3 py-2.5 cursor-pointer focus:border-highlight transition-colors w-40"
+                                        >
+                                            <option value="" disabled>Select Genre *</option>
+                                            {genres.map((genre: any) => (
+                                                <option key={genre.id} value={genre.id}>{genre.name}</option>
+                                            ))}
+                                        </select>
+                                        
+                                        <button 
+                                            onClick={() => setReleases(releases.filter(t => t.id !== track.id))}
+                                            className="text-text-sub hover:text-error w-10 h-10 flex items-center justify-center rounded-full hover:bg-panel transition-colors"
+                                            title="Delete Track"
+                                        >
+                                            <Delete />
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Phần nhập Lyrics */}
+                                <div className="ml-10">
                                     <div className="flex items-center gap-4">
                                         <label className="cursor-pointer hover:text-text-main flex items-center gap-2 bg-panel px-4 py-2 rounded-lg border border-border hover:border-highlight transition-colors shadow-sm">
-                                            <MusicNote fontSize="small" className={track.file ? "text-highlight" : "text-text-sub"} /> 
                                             <span className="text-sm font-semibold">
-                                                {track.file ? "Change Audio" : "Upload Audio *"}
+                                                {track.lyrics_file ? "Change Lyrics File" : "Upload Lyrics (.lrc)"}
                                             </span>
                                             <input 
                                                 type="file" 
                                                 className="hidden" 
-                                                accept="audio/mpeg, audio/wav, audio/x-wav"
-                                                onChange={e => e.target.files?.[0] && updateTrackFile(track.id, e.target.files[0])}
+                                                accept=".lrc"
+                                                onChange={e => {
+                                                    const file = e.target.files?.[0];
+                                                    if (file) setReleases(releases.map(t => t.id === track.id ? { ...t, lyrics_file: file } : t));
+                                                    e.target.value = '';
+                                                }}
                                             />
                                         </label>
-                                        <span className={`text-sm truncate max-w-[250px] ${track.file ? 'text-text-main font-medium' : 'text-text-sub italic'}`}>
-                                            {track.file?.name || "No file selected (Max 50MB)"}
+                                        <span className={`text-sm truncate max-w-[250px] ${track.lyrics_file || track.existing_lyrics_file ? 'text-highlight font-medium' : 'text-text-sub italic'}`}>
+                                            {track.lyrics_file 
+                                                ? track.lyrics_file.name 
+                                                : (track.existing_lyrics_file || "No lyrics file uploaded")}
                                         </span>
+                                        <div className="flex flex-col">
+                                            
+                                            {track.lyrics_file && (
+                                                <button 
+                                                    onClick={() => setReleases(releases.map(t => t.id === track.id ? { ...t, lyrics_file: null } : t))}
+                                                    className="text-sm md:text-md text-error hover:font-bold text-left mt-0.5 rounded-lg hover:bg-error/20 px-3 py-2 transition-all duration-200"
+                                                >
+                                                    Remove file
+                                                </button>
+                                            )}
+                                        </div>
                                     </div>
-
-                                    <FeaturedArtistInput 
-                                        selectedArtists={track.featured_artists || []}
-                                        onChange={(newArtists) => setReleases(releases.map(t => t.id === track.id ? { ...t, featured_artists: newArtists } : t))}
-                                    />
-                                </div>
-
-                                <div className="flex flex-col gap-4 items-end ml-2">
-                                    <select 
-                                        value={track.genre_id}
-                                        onChange={e => setReleases(releases.map(t => t.id === track.id ? {...t, genre_id: e.target.value } : t))}
-                                        className="bg-panel text-text-main font-medium text-sm outline-none border border-border rounded-lg px-3 py-2.5 cursor-pointer focus:border-highlight transition-colors w-40"
-                                    >
-                                        <option value="" disabled>Select Genre *</option>
-                                        {genres.map((genre: any) => (
-                                            <option 
-                                                key={genre.id} 
-                                                value={genre.id}>{genre.name}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    
-                                    <button 
-                                        onClick={() => setReleases(releases.filter(t => t.id !== track.id))}
-                                        className="text-text-sub hover:text-error w-10 h-10 flex items-center justify-center rounded-full hover:bg-panel transition-colors"
-                                        title="Delete Track"
-                                    >
-                                        <Delete />
-                                    </button>
                                 </div>
                             </div>
                         ))}

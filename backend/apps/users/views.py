@@ -1,3 +1,4 @@
+import random
 from rest_framework import generics, permissions, status, filters, views, serializers
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.response import Response
@@ -8,8 +9,10 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from . import serializers 
 from apps.core.permissions import AdminPermission
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
-import random
 from ..users.models import Notification
+from django.db.models import F
+from  django.utils import timezone
+from apps.analytics.models import UserDailyStat
 from django.core.cache import cache
 from django.shortcuts import get_object_or_404
 from django.core.mail import send_mail
@@ -144,6 +147,15 @@ class VerifyRegistrationOTPView(generics.GenericAPIView):
             user.save()
             # Xóa OTP khỏi cache
             cache.delete(f"reg_otp_{email}")
+
+            today = timezone.now()
+            stat, created = UserDailyStat.objects.get_or_create(date=today)
+            if not created:
+                stat.new_users = F('new_users') + 1
+                stat.save(update_fields=['new_users'])
+            else:
+                stat.new_users = 1
+                stat.save(update_fields=['new_users'])
             return Response({"detail": "Xác thực thành công. Bạn có thể đăng nhập!"}, status=status.HTTP_200_OK)
         except User.DoesNotExist:
             return Response({"error": "Không tìm thấy tài khoản."}, status=status.HTTP_404_NOT_FOUND)

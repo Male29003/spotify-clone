@@ -14,7 +14,7 @@ export const userApi = {
 }
 
 export const adminApi = {
-    get: (params: { search?: string, page?: number, limit?: number, is_active: boolean, is_staff: boolean }) => {
+    get: (params: { search?: string, page?: number, limit?: number, is_premium?:boolean, is_active: boolean, is_staff: boolean }) => {
         return api.get('/users/admin/manage/', { params });
     },
 

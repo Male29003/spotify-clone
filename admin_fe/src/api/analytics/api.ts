@@ -1,6 +1,9 @@
 import { api } from "../axiosConfig";
 
 export const analyticsApi = {
-    getArtistDashboard: () => api.get('/analytics/artist-dashboard/'),
-    getAdminDashboard: () => api.get('/analytics/admin-dashboard/'),
+    getArtistDashboard: (params?: { start_date: string, end_date: string }) => 
+        api.get('/analytics/artist-dashboard/', { params }),
+        
+    getAdminDashboard: (params?: { start_date: string, end_date: string }) => 
+        api.get('/analytics/admin-dashboard/', { params }),
 };

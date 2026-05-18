@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import ThemeToggle from '../../components/main_ui/ThemeToggleButton';
-import { ExitToAppOutlined, FormatIndentDecrease, FormatIndentIncrease, PersonOutlined } from '@mui/icons-material';
+import { ExitToAppOutlined, FormatIndentDecrease, FormatIndentIncrease, Menu, PersonOutlined } from '@mui/icons-material';
 import { useAuthStore } from '../../stores/auth/authStore';
 import { useNavigate } from 'react-router-dom';
 import { useAdminSiderStore } from '../../stores/useSiderStore';
@@ -26,19 +26,18 @@ const AdminHeader = () => {
   }, []);
 
   return (
-    <header className="h-16 bg-panel border-b border-gray-200 flex items-center justify-between px-6 z-50 shrink-0">
-      {/* Nút ẩn/hiện Sidebar*/}
-      <div className="flex items-center">
-        <button 
-          className='cursor-pointer w-10 h-10'
-          onClick={toggleSider}
-        >
-          {isExpanded ? <FormatIndentDecrease /> : <FormatIndentIncrease />}
-        </button>
+    <header className="h-16 bg-panel border-b border-border flex items-center justify-between px-4 sm:px-6 z-50 shrink-0">
+      <div className="flex items-center gap-4">
+          <button 
+              className='cursor-pointer w-10 h-10 flex items-center justify-center text-text-sub hover:text-text-main rounded-lg hover:bg-hover transition-colors'
+              onClick={toggleSider}
+          >
+            {isExpanded ? <FormatIndentDecrease /> : <FormatIndentIncrease />}
+          </button>
       </div>
 
-      {/* Cụm tính năng bên phải */}
-      <div className="flex items-center space-x-3">
+      {/* avatar - noti - đổi theme */}
+      <div className="flex items-center space-x-2 sm:space-x-3">
         <ThemeToggle />
         <NotificationDropdown />
 

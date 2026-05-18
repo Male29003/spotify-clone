@@ -97,14 +97,6 @@ export const useAdminUpdateTrackStatus = () => {
             queryClient.invalidateQueries({ queryKey: ['my_tracks'] });
             queryClient.invalidateQueries({ queryKey: ['my_release_detail'] })
             queryClient.invalidateQueries({ queryKey: ['track_detail', variables.short_id] });
-            //listener
-            queryClient.invalidateQueries({ queryKey: ['music'] });
-            queryClient.invalidateQueries({ queryKey: ['search_tracks'] });
-            queryClient.invalidateQueries({ queryKey: ['favourite_tracks'] });
-            queryClient.invalidateQueries({ queryKey: ['track_detail', variables.short_id] });
-            queryClient.invalidateQueries({ queryKey: ['trending_tracks'] });
-            queryClient.invalidateQueries({ queryKey: ['recent_tracks'] });
-            queryClient.invalidateQueries({ queryKey: ['recommended_tracks'] });
         },
         onError: (error: any) => {
             console.error("Error:", error.response?.data || error.message);
@@ -151,19 +143,6 @@ export const useUpdateMyTrack = () => {
             queryClient.invalidateQueries({ queryKey: ['track-detail', variables.short_id] });
             queryClient.invalidateQueries({ queryKey: ['admin_tracks'] });
             queryClient.invalidateQueries({ queryKey: ['admin_release_detail'] });
-            // listener
-            queryClient.invalidateQueries({ queryKey: ['music'] });
-            queryClient.invalidateQueries({ queryKey: ['track_detail', variables.short_id] });
-            queryClient.invalidateQueries({ queryKey: ['favourite_tracks'] });
-            queryClient.invalidateQueries({ queryKey: ['trending_tracks'] });
-            queryClient.invalidateQueries({ queryKey: ['recent_tracks'] });
-            queryClient.invalidateQueries({ queryKey: ['recommended_tracks'] });
-            queryClient.invalidateQueries({ queryKey: ['releases'] })
-            queryClient.invalidateQueries({ queryKey: ['favourite_releases'] })
-            queryClient.invalidateQueries({ queryKey: ['trending_releases'] })
-            queryClient.invalidateQueries({ queryKey: ['recent-releases'] })
-            queryClient.invalidateQueries({ queryKey: ['recommended-releases'] })
-            queryClient.invalidateQueries({ queryKey: ['release_detail'] })
         },
         onError: (error: any) => {
             console.error("Error:", error.response?.data || error.message);
@@ -181,23 +160,3 @@ export const useGetUnassignedTracks = () => {
         }
     });
 };
-
-
-export const useToggleTrackActive = () => {
-    const queryClient = useQueryClient();
-    return useMutation({
-        mutationFn: ({ short_id, data }: { short_id: string, data: { is_active?: boolean; is_blocked?: boolean } }) => 
-            studioMusicApi.updateTrackStatus(short_id, data),
-        onSuccess: (_, variables) => {
-            queryClient.invalidateQueries({ queryKey: ['my_tracks'] });
-            queryClient.invalidateQueries({ queryKey: ['track_detail', variables.short_id] });
-            queryClient.invalidateQueries({ queryKey: ['my_release_detail'] }); 
-            queryClient.invalidateQueries({ queryKey: ['unassigned_tracks'] });
-            queryClient.invalidateQueries({ queryKey: ['admin_release_detail'] });
-        },
-        onError: (error: any) => {
-            console.error("Error:", error.response?.data || error.message);
-        }
-    });
-}
-

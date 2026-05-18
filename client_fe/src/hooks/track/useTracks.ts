@@ -134,26 +134,14 @@ export const useRecommendedTracks = () => {
     })
 }
 
+// tính lượt nghe
 export const useRecordHistory = () => {
     return useMutation({
         mutationFn: (short_id: string) => listenerMusicApi.recordHistory(short_id)
     })
 }
 
-export const useListenerPlayer = () => {
-    const playTrackBase = usePlayerStore((state) => state.playTrack);
-    const playAndRecord = async (track: any, newQueue: any) => {
-        playTrackBase(track, newQueue);
-        try {
-            await listenerMusicApi.recordHistory(track.short_id);
-        } catch (error) {
-            console.error("Error khi lưu lịch sử nghe nhạc:", error);
-        }
-    };
-    return { playAndRecord };
-};
-
-
+// tải nhạc
 export const useTrackDownload = () => {
     const [isDownloading, setIsDownloading] = useState<boolean>(false);
     const abortControllerRef = useRef<AbortController | null>(null)

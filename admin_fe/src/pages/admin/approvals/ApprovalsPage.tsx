@@ -42,7 +42,10 @@ const ApprovalsPage = () => {
                 onError: (err: any) => CustomToast.error(err.response?.data?.detail || "Error!"),
                 onSettled: () => { setLoading(false); closeModal(); }
             });
-        }, { title: "Approve Artist", message: `Are you sure you want to approve "${app.stage_name}"?` });
+        }, { 
+            title: "Approve Artist", 
+            message: `Are you sure you want to approve "${app.stage_name}"?` 
+        });
     };
 
     const handleRejectArtist = (app: any) => {

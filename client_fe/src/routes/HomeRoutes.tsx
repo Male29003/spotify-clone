@@ -60,18 +60,17 @@ export const HomeRoutes = {
                             path: "notifications", 
                             element: <NotificationsPage /> 
                         },
-                        {
-                            path: "/subscription",
-                            element: <SubscriptionPage />,
-                        },
-                        {
-                            path: "apply-artist",
-                            element: <ApplyArtistPage />,
-                        }
                     ]
                 }
-
             ]
         },
+        {
+            path: "/subscription",
+            element: <SubscriptionPage />,
+        },
+        {
+            path: "apply-artist",
+            element: <ApplyArtistPage />,
+        }
     ]
 };

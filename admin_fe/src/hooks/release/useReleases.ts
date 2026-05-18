@@ -185,13 +185,6 @@ export const useAdminToggleRelease = () => {
             // artist
             queryClient.invalidateQueries({ queryKey: ['my_release_detail', variables.short_id] });
             queryClient.invalidateQueries({ queryKey: ['my_releases'] })
-            //listener
-            queryClient.invalidateQueries({ queryKey: ['releases'] })
-            queryClient.invalidateQueries({ queryKey: ['favourite_releases'] })
-            queryClient.invalidateQueries({ queryKey: ['trending_releases'] })
-            queryClient.invalidateQueries({ queryKey: ['recent-releases'] })
-            queryClient.invalidateQueries({ queryKey: ['recommended-releases'] })
-            queryClient.invalidateQueries({ queryKey: ['release_detail', variables.short_id] })
 
         },
         onError: (error: any) => {
