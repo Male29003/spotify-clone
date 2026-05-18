@@ -23,7 +23,7 @@ load_dotenv()
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG', 'True')
+DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
 
 SECRET_KEY = os.getenv('SECRET_KEY', 'chuoi-tam-thoi-de-khong-bi-loi-khi-dev')
 
@@ -46,7 +46,7 @@ CORS_ALLOW_HEADERS = [
     'x-requested-with',
 ]
 CORS_URLS_REGEX = r"^/api/.*$"
-
+CORS_EXPOSE_HEADERS = ['Content-Type', 'X-CSRFToken']
 # ==========================================
 # 2. CẤU HÌNH DATABASE & REDIS DỰA VÀO ENV
 # ==========================================
