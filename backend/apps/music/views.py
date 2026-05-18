@@ -19,30 +19,20 @@ from pydub import AudioSegment
 from django.http import Http404
 from django.http import StreamingHttpResponse
 from cryptography.fernet import Fernet
-<<<<<<< HEAD
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
-=======
->>>>>>> d0d092557be3048ad089e799de52192222719817
 from rest_framework.renderers import BaseRenderer
 from django_redis import get_redis_connection
 from ..core.notification import send_system_notification, send_system_event
 from apps.core.choices import BlockReason
-<<<<<<< HEAD
 from apps.core.utils import generate_short_id
 
 from . import serializers
 from apps.analytics.models import StreamHistory, DownloadHistory, TrackDailyStat
-=======
-
-from . import serializers
-from apps.analytics.models import StreamHistory, DownloadHistory
->>>>>>> d0d092557be3048ad089e799de52192222719817
 from .models import Track
 from apps.releases.models import Release
 from rest_framework.views import APIView
 from apps.artists.models import FavouriteArtist
 
-<<<<<<< HEAD
 def get_client_ip(request):
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
     if x_forwarded_for:
@@ -50,8 +40,6 @@ def get_client_ip(request):
     else:
         ip = request.META.get('REMOTE_ADDR')
     return ip
-=======
->>>>>>> d0d092557be3048ad089e799de52192222719817
 # ==========================================================================================
 # -------------------------------- Chức năng cho Listener --------------------------------
 # ==========================================================================================
@@ -68,25 +56,6 @@ class MusicStreamView(APIView):
     renderer_classes = [PlainTextRenderer]
     permission_classes = [permissions.AllowAny]
 
-<<<<<<< HEAD
-=======
-    def _background_cache_full_track(self, track_id, file_url):
-        """Hàm chạy ngầm: Tải, giải mã và lưu vào Redis"""
-        cache_key = f"track_decrypt_{track_id}"
-        # Kiểm tra lại lần nữa để tránh nhiều thread cùng làm 1 việc
-        if not cache.get(cache_key):
-            try:
-                print(f"🔄 [Background] Đang nạp bài {track_id} vào Redis...")
-                response = requests.get(file_url)
-                fernet = Fernet(os.getenv('MUSIC_ENCRYPTION_KEY').encode())
-                decrypted_data = fernet.decrypt(response.content)
-                # Lưu vào Redis (24h)
-                cache.set(cache_key, decrypted_data, timeout=86400)
-                print(f"✅ [Background] Bài {track_id} đã sẵn sàng trong RAM.")
-            except Exception as e:
-                print(f"❌ [Background] Lỗi: {e}")
-
->>>>>>> d0d092557be3048ad089e799de52192222719817
     def get(self, request, short_id):
         track = get_object_or_404(Track, short_id=short_id)
         is_premium_user = False
@@ -107,7 +76,6 @@ class MusicStreamView(APIView):
             except Exception as e:
                 print(f"Lỗi stream file preview: {e}")
                 return Response({"error": "Lỗi kết nối âm thanh"}, status=503)
-<<<<<<< HEAD
 
         # 2. XỬ LÝ FULL TRACK (Lưu nguyên file tệp bytes đã giải mã vào 1 Key Redis)
         cache_key = f"track_decrypted_full:{track.id}"
@@ -119,31 +87,10 @@ class MusicStreamView(APIView):
             # --- CƠ CHẾ CACHE MISS: RAM chưa có bài này ---
             if not decrypted_data:
                 print(f"🔄 [Cache Miss] Đang kéo full bài {track.short_id} từ R2 về giải mã...")
-=======
-        # 2. XỬ LÝ FULL TRACK (Cơ chế Map cho Premium/Bài free)
-        # Lấy size file để tính số miếng (Nên lưu file_size vào DB để tối ưu)
-        file_size = track.file_size or int(requests.head(track.file_url.url).headers.get('Content-Length', 0))
-        total_chunks = math.ceil(file_size / CHUNK_SIZE)
-
-        # Kết nối Redis (Dùng cấu hình từ settings.py, tự thích ứng khi lên Host)
-        redis_conn = get_redis_connection("default")
-        
-        chunk_hash_key = f"track:map:data:{track.id}"
-        bitmap_key = f"track:map:bits:{track.id}"
-
-        def map_generator():
-            fernet = Fernet(os.getenv('MUSIC_ENCRYPTION_KEY').encode())
-            
-            # KIỂM TRA XEM MAP ĐÃ CÓ TRÊN RAM CHƯA?
-            # Chỉ cần check bit 0 là biết file đã được cache hay chưa
-            if not redis_conn.getbit(bitmap_key, 0):
-                print(f"Đang kéo full bài {track.short_id} về để nạp Map...")
->>>>>>> d0d092557be3048ad089e799de52192222719817
                 try:
                     r2_res = requests.get(track.file_url.url, timeout=15)
                     raw_data = r2_res.content
                     
-<<<<<<< HEAD
                     # Tiến hành giải mã toàn bộ file dữ liệu
                     try:
                         fernet = Fernet(os.getenv('MUSIC_ENCRYPTION_KEY').encode())
@@ -177,53 +124,6 @@ class MusicStreamView(APIView):
                 yield decrypted_data[start:end]
 
         response = StreamingHttpResponse(audio_stream_generator(), content_type="audio/mpeg")
-=======
-                    try:
-                        # Thử giải mã
-                        processed_data = fernet.decrypt(raw_data)
-                        print("✅ Giải mã thành công!")
-                    except Exception:
-                        # NẾU GIẢI MÃ LỖI -> ĐÂY LÀ FILE MP3 GỐC, KHÔNG CẦN GIẢI MÃ
-                        print("⚠️ File chưa mã hóa (gốc), bỏ qua bước giải mã!")
-                        processed_data = raw_data
-
-                    # BĂM NHỎ NGAY TRÊN RAM VÀ NHÉT VÀO MAP REDIS
-                    total_bytes = len(processed_data)
-                    calculated_chunks = math.ceil(total_bytes / CHUNK_SIZE)
-
-                    # Dùng Pipeline để insert hàng loạt vào Redis (Cực kỳ nhanh)
-                    pipe = redis_conn.pipeline()
-                    for j in range(calculated_chunks):
-                        start = j * CHUNK_SIZE
-                        end = (j + 1) * CHUNK_SIZE
-                        piece = processed_data[start:end]
-                        
-                        pipe.hset(chunk_hash_key, str(j), piece)
-                        pipe.setbit(bitmap_key, j, 1)
-                    
-                    # Set TTL 1 ngày
-                    pipe.expire(chunk_hash_key, 86400)
-                    pipe.expire(bitmap_key, 86400)
-                    pipe.execute() # Thực thi lưu vào Redis 1 lần duy nhất
-                    
-                except Exception as e:
-                    print(f"Lỗi khi tải hoặc lưu Redis: {e}")
-                    # Fallback an toàn: Trả luôn cục raw_data nếu Redis sập
-                    traceback.print_exc()
-                    yield raw_data
-                    return
-
-            # NẾU ĐÃ CÓ Ở REDIS (Hoặc vừa nạp xong) -> LẤY RA PHÁT NHẠC
-            # Phải đếm lại số lượng chunk thực tế đang có trong Hash
-            actual_total_chunks = redis_conn.hlen(chunk_hash_key)
-            
-            for i in range(actual_total_chunks):
-                chunk_data = redis_conn.hget(chunk_hash_key, str(i))
-                if chunk_data:
-                    yield chunk_data
-
-        response = StreamingHttpResponse(map_generator(), content_type="audio/mpeg")
->>>>>>> d0d092557be3048ad089e799de52192222719817
         response['Accept-Ranges'] = 'bytes'
         return response
 
@@ -346,7 +246,6 @@ class RecordListeningView(APIView):
         try:
             track = Track.objects.get(short_id=short_id, is_active=True)
             user = request.user if request.user.is_authenticated else None
-<<<<<<< HEAD
             today = timezone.now().date()
 
             # Check Spam (Chỉ áp dụng cho User đã đăng nhập)
@@ -365,10 +264,6 @@ class RecordListeningView(APIView):
                     return Response({"detail": "User đã đạt giới hạn 5 lượt/ngày."}, status=status.HTTP_200_OK)
 
                 # Check Spam (1 phút)
-=======
-            # Check Spam (Chỉ áp dụng cho User đã đăng nhập)
-            if user:
->>>>>>> d0d092557be3048ad089e799de52192222719817
                 one_minute_ago = timezone.now() - timedelta(minutes=1)
                 is_spam = StreamHistory.objects.filter(
                     user=user, 
@@ -376,7 +271,6 @@ class RecordListeningView(APIView):
                     created_at__gte=one_minute_ago
                 ).exists()
                 if is_spam:
-<<<<<<< HEAD
                     return Response({"detail": "Đang trong thời gian chờ (User)."}, status=status.HTTP_200_OK)
             # --- KIỂM TRA CHO GUEST (CHƯA ĐĂNG NHẬP) DÙNG REDIS CACHE ---
             else:
@@ -404,16 +298,10 @@ class RecordListeningView(APIView):
             user_country = user.country if user else None
             
             # 1. Lưu vào bảng History (Lịch sử)
-=======
-                    return Response({"detail": "Đã ghi nhận view gần đây, đang trong thời gian chờ."}, status=status.HTTP_200_OK)
-            # Lưu vào lịch sử (Kèm theo Country để vẽ bản đồ)
-            user_country = user.country if user else None
->>>>>>> d0d092557be3048ad089e799de52192222719817
             StreamHistory.objects.create(
                 user=user, 
                 track=track,
                 country=user_country
-<<<<<<< HEAD
             )
             
             # 2. Cập nhật Thống kê ngày
@@ -431,35 +319,18 @@ class RecordListeningView(APIView):
             # 4. Nạp Cache View Tổng (Để Artist load số nhanh hơn nếu sếp có xài)
             cache_key = f'track_views_{track.id}'
             try:
-=======
-            )            
-            # Tăng view trong Redis Cache (Hàng chờ cộng dồn)
-            cache_key = f'track_views_{track.id}'
-            try:
-                # Nếu dùng django-redis, incr sẽ tự tạo key = 1 nếu chưa có (tùy config)
-                # Hoặc dùng cách an toàn này:
->>>>>>> d0d092557be3048ad089e799de52192222719817
                 if cache.get(cache_key) is None:
                     cache.set(cache_key, 1, timeout=None)
                 else:
                     cache.incr(cache_key)
             except Exception:
                 cache.set(cache_key, 1, timeout=None)
-<<<<<<< HEAD
                 
             return Response({"detail": "Đã ghi nhận lượt nghe thành công."}, status=status.HTTP_200_OK)
             
         except Track.DoesNotExist:
             return Response({"detail": "Bài hát không tồn tại."}, status=status.HTTP_404_NOT_FOUND)
         
-=======
-            cache_key = f'track_views_{track.id}'
-            return Response({"detail": "Đã lưu lịch sử và nạp view vào Redis."}, status=status.HTTP_200_OK)
-        except Track.DoesNotExist:
-            return Response({"detail": "Bài hát không tồn tại."}, status=status.HTTP_404_NOT_FOUND)
-
-
->>>>>>> d0d092557be3048ad089e799de52192222719817
 class RecommendedTrackListView(generics.ListAPIView):
     """Thuật toán Gợi ý Nhạc cá nhân hóa đa chiều"""
     serializer_class = serializers.ListenerTrackSerializer
@@ -603,10 +474,6 @@ class StudioTrackCreateView(generics.ListCreateAPIView):
             
         audio_file = self.request.FILES.get('file_url')
         
-<<<<<<< HEAD
-=======
-        # 🔥 Đã sửa: Khởi tạo đúng tên biến
->>>>>>> d0d092557be3048ad089e799de52192222719817
         duration = None
         preview_file_data = None 
         
@@ -633,7 +500,6 @@ class StudioTrackCreateView(generics.ListCreateAPIView):
                 audio_file.seek(0)
             except Exception as e:
                 print(f"Lỗi xử lý file âm thanh: {e}")
-<<<<<<< HEAD
         
         lyrics_text = self.request.data.get('lyrics', '')
         lyrics_file_obj = None
@@ -641,29 +507,20 @@ class StudioTrackCreateView(generics.ListCreateAPIView):
             # Tạo file .lrc trên RAM
             lyrics_name = f"lyrics_{generate_short_id()}.lrc"
             lyrics_file_obj = ContentFile(lyrics_text.encode('utf-8'), name=lyrics_name)
-=======
->>>>>>> d0d092557be3048ad089e799de52192222719817
 
         # Lưu Track với đầy đủ thông tin (Model sẽ lo việc mã hóa file gốc, còn Django sẽ tự up file Preview)
         serializer.save(
             artist=release.artist, 
             release=release,
             duration=duration,
-<<<<<<< HEAD
             preview_file=preview_file_data,
             lyrics_file=lyrics_file_obj
-=======
-            preview_file=preview_file_data
->>>>>>> d0d092557be3048ad089e799de52192222719817
         )
 
 class StudioTrackUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = serializers.TrackSerializer
     permission_classes = [ArtistPermission] 
-<<<<<<< HEAD
     parser_classes = (MultiPartParser, FormParser, JSONParser)
-=======
->>>>>>> d0d092557be3048ad089e799de52192222719817
     lookup_field = 'short_id'
 
     def get_queryset(self):
