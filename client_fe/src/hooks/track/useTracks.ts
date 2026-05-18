@@ -83,11 +83,11 @@ export const useGetTrackDetail = (short_id: string) => {
 }
 
 export const useGetFavouriteTracks = () => {
-    const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
+    const { isAuthenticated, isLoaded } = useAuthStore(state => state)
     return useQuery({
         queryKey: ['favourite_tracks'],
         queryFn: () => listenerMusicApi.getFavourite(),
-        enabled: !!isAuthenticated,
+        enabled: !!isAuthenticated && isLoaded,
     });
 };
 
@@ -126,11 +126,11 @@ export const useToggleFavouriteTrack = () =>{
 }
 
 export const useRecommendedTracks = () => {
-    const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
+    const { isAuthenticated, isLoaded } = useAuthStore(state => state)
     return useQuery({
         queryKey: ['recommended_tracks'],
         queryFn: () => listenerMusicApi.getRecommended(),
-        enabled: !!isAuthenticated
+        enabled: !!isAuthenticated && isLoaded
     })
 }
 

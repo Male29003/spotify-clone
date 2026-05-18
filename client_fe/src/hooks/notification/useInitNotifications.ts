@@ -11,7 +11,7 @@ export const useSystemWebSocket = () => {
     const { setInitial, addNewNotification } = useNotificationStore(state => state)
     const queryClient = useQueryClient();
     const navigate = useNavigate()
-    const { isAuthenticated } = useAuthStore(state => state)
+    const { isAuthenticated, isLoaded } = useAuthStore(state => state)
 
     useQuery({
         queryKey: ['my_notifications_init'],
@@ -22,7 +22,7 @@ export const useSystemWebSocket = () => {
             setInitial(notifs, unread);
             return notifs;
         },
-        enabled: isAuthenticated, 
+        enabled: isAuthenticated && isLoaded, 
         staleTime: Infinity,
     });
 
