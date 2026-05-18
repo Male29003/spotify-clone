@@ -23,7 +23,7 @@ load_dotenv()
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG', 'True') == 'True' 
+DEBUG = os.getenv('DEBUG', 'True')
 
 SECRET_KEY = os.getenv('SECRET_KEY', 'chuoi-tam-thoi-de-khong-bi-loi-khi-dev')
 
