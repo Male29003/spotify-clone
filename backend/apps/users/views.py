@@ -18,6 +18,7 @@ from django.shortcuts import get_object_or_404
 from django.core.mail import send_mail
 from django.contrib.auth.hashers import make_password
 from ..core.notification import send_system_notification, send_system_event
+from django.conf import settings
 
 User = get_user_model()
 
@@ -39,19 +40,21 @@ class CustomTokenObtainPairView(TokenObtainPairView):
             # 2. Bắt đầu đóng gói vào Cookie
             # Lưu ý: secure=False để test localhost, khi deploy production đổi thành True (chạy HTTPS)
             response.set_cookie(
-                key='access', # 🔥 ĐÂY! TÊN COOKIE ĐƯỢC ĐỊNH NGHĨA Ở ĐÂY NÀY!
+                key='access',
                 value=access_token,
                 httponly=True,
-                secure=False,
-                samesite='Lax'
+                secure=not settings.DEBUG,        # Đổi thành True vì Render chạy HTTPS
+                samesite='None' if not settings.DEBUG else 'Lax',    # ĐÂY! Đổi 'Lax' thành 'None' thì Vercel mới nhận
+                max_age=3600        # Nên thêm thời gian sống cho cookie
             )
-            
+
             response.set_cookie(
                 key='refresh',
                 value=refresh_token,
                 httponly=True,
-                secure=False, 
-                samesite='Lax'
+                secure=not settings.DEBUG,        # Đổi thành True
+                samesite='None' if not settings.DEBUG else 'Lax',    # Đổi thành 'None'
+                max_age=86400 * 7   # 7 ngày
             )
             
             response.data['detail'] = "Successfully logged in."
@@ -76,8 +79,9 @@ class CustomTokenRefreshView(TokenRefreshView):
                 key='access',
                 value=access_token,
                 httponly=True,
-                secure=False,
-                samesite='Lax'
+                secure=not settings.DEBUG,     # Đổi thành True
+                samesite='None' if not settings.DEBUG else 'Lax', 
+                max_age=3600
             )
             # del response.data['access'] # Ẩn đi cho ngầu
             response.data['detail'] = "Successfully refreshed token."

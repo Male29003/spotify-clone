@@ -23,103 +23,22 @@ load_dotenv()
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: don't run with debug turned on in production!
+# ==========================================
+# 1. CORE SETTINGS
+# ==========================================
 DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
-
 SECRET_KEY = os.getenv('SECRET_KEY', 'chuoi-tam-thoi-de-khong-bi-loi-khi-dev')
-
 # Nhận list host từ .env (phân cách bằng dấu phẩy)
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '127.0.0.1,localhost').split(',')
-
-# Nhận list CORS từ .env
-CORS_ALLOWED_ORIGINS = os.getenv('CORS_ALLOWED_ORIGINS', 'http://localhost:5173,http://localhost:3000').split(',')
-CORS_ALLOW_ALL_ORIGINS = False
-CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOW_HEADERS = [
-    'accept',
-    'accept-encoding',
-    'authorization',
-    'content-type',
-    'dnt',
-    'origin',
-    'user-agent',
-    'x-csrftoken',
-    'x-requested-with',
-]
-CORS_URLS_REGEX = r"^/api/.*$"
-CORS_EXPOSE_HEADERS = ['Content-Type', 'X-CSRFToken']
-# ==========================================
-# 2. CẤU HÌNH DATABASE & REDIS DỰA VÀO ENV
-# ==========================================
-# Nếu có biến DATABASE_URL (Supabase cấp), nó sẽ xài. Nếu không có, nó xài cấu hình PostgreSQL local.
-DATABASES = {
-    'default': dj_database_url.config(
-        default=os.getenv('DATABASE_URL', 
-            f"postgres://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}@{os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}")
-    )
-}
-
-# Lấy URL của Redis từ Upstash/Render. Nếu ở Local thì xài localhost
-REDIS_URL = os.getenv('REDIS_URL', 'redis://127.0.0.1:6379')
-
-CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': 'channels_redis.core.RedisChannelLayer',
-        'CONFIG': {
-            "hosts": [REDIS_URL],
-        },
-    },
-}
-
-CACHES = {
-    "default": {
-        "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": f"{REDIS_URL}",
-        #"LOCATION": f"{REDIS_URL}/1",
-        "OPTIONS": {
-            "CLIENT_CLASS": "django_redis.client.DefaultClient",
-        }
-    }
-}
-# ==========================================
-# 3. CẤU HÌNH BẢO MẬT COOKIE & HTTPS
-# ==========================================
-# Nếu là Production (DEBUG = False) thì ép Cookie phải chạy qua HTTPS
-IS_PRODUCTION = not DEBUG
-
-#SESSION_COOKIE_SAMESITE = 'None' if IS_PRODUCTION else 'Lax'
-#CSRF_COOKIE_SAMESITE = 'None' if IS_PRODUCTION else 'Lax'
-#SESSION_COOKIE_SECURE = IS_PRODUCTION
-#CSRF_COOKIE_SECURE = IS_PRODUCTION
-
-SESSION_COOKIE_SAMESITE = 'None'
-CSRF_COOKIE_SAMESITE = 'None'
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
-
-REST_AUTH = {
-    #'USE_JWT': True,
-    #'JWT_AUTH_COOKIE': 'access',
-    #'JWT_AUTH_REFRESH_COOKIE': 'refresh',
-    #'JWT_AUTH_HTTPONLY': True,
-    #'JWT_AUTH_SECURE': IS_PRODUCTION,
-    #'JWT_AUTH_SAMESITE': 'None' if IS_PRODUCTION else 'Lax',
-    'USE_JWT': True,
-    'JWT_AUTH_COOKIE': 'access',
-    'JWT_AUTH_REFRESH_COOKIE': 'refresh',
-    'JWT_AUTH_HTTPONLY': True,
-    'JWT_AUTH_SECURE': True,      
-    'JWT_AUTH_SAMESITE': 'None',  # CHỖ NÀY NÈ: Phải có dấu nháy đơn 'None'
-    'JWT_AUTH_RETURN_EXPIRATION': True,
-    'JWT_AUTH_COOKIE_USE_CSRF': False,
-}
-
-AUTH_USER_MODEL = 'users.User'
-STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY', 'sk_test_...')
-
 DOMAIN = os.getenv('DOMAIN', 'localhost:8000')
-# Application definitions
-# Application definitions
+ROOT_URLCONF = 'spotify_clone.urls'
 
+WSGI_APPLICATION = 'spotify_clone.wsgi.application'
+ASGI_APPLICATION = 'spotify_clone.asgi.application'
+
+# ==========================================
+# 2. APPS & MIDDLEWARE
+# ==========================================
 INSTALLED_APPS = [
     'daphne',
     'django.contrib.admin',
@@ -144,9 +63,7 @@ INSTALLED_APPS = [
     'apps.users',
     'apps.subscription',
     'apps.analytics',
-
     'channels',
-
 ]
 
 MIDDLEWARE = [
@@ -160,8 +77,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-
-ROOT_URLCONF = 'spotify_clone.urls'
 
 TEMPLATES = [
     {
@@ -178,51 +93,81 @@ TEMPLATES = [
         },
     },
 ]
+# ==========================================
+# 3. CORS & COOKIE SECURITY
+# ==========================================
+# Nhận list CORS từ .env
+CORS_ALLOWED_ORIGINS = os.getenv('CORS_ALLOWED_ORIGINS', 'http://localhost:5173,http://localhost:3000').split(',')
+CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
+CORS_URLS_REGEX = r"^/api/.*$"
+CORS_EXPOSE_HEADERS = ['Content-Type', 'X-CSRFToken']
 
-WSGI_APPLICATION = 'spotify_clone.wsgi.application'
-ASGI_APPLICATION = 'spotify_clone.asgi.application'
+SESSION_COOKIE_SAMESITE = 'None'
+CSRF_COOKIE_SAMESITE = 'None'
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
 
-# Database
-# https://docs.djangoproject.com/en/4.2/ref/settings/#databases
+# ==========================================
+# 4. DATABASE, REDIS & CACHE
+# ==========================================
+DATABASES = {
+    'default': dj_database_url.config(
+        default=os.getenv('DATABASE_URL', 
+            f"postgres://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}@{os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}")
+    )
+}
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Cấu hình gửi mail qua SMTP của Gmail
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
+# Lấy URL của Redis từ Upstash/Render. Nếu ở Local thì xài localhost
+REDIS_URL = os.getenv('REDIS_URL', 'redis://127.0.0.1:6379')
 
-# Đọc từ file .env
-EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
-# Optional: Tên người gửi mặc định (Ví dụ: "Spotify Clone Admin <spotify.clone@gmail.com>")
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [REDIS_URL],
+        },
+    },
+}
 
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": f"{REDIS_URL}",
+        #"LOCATION": f"{REDIS_URL}/1",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    }
+}
+# ==========================================
+# 5. REST FRAMEWORK & JWT SETTINGS
+# ==========================================
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'apps.users.authentication.CookieJWTAuthentication',
-    ),
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',
-    ],
+    'DEFAULT_AUTHENTICATION_CLASSES': ('apps.users.authentication.CookieJWTAuthentication',),
+    'DEFAULT_PERMISSION_CLASSES': ['rest_framework.permissions.IsAuthenticated',],
     'DEFAULT_THROTTLE_CLASSES': [
-        'rest_framework.throttling.AnonRateThrottle', # Dành cho khách chưa login
-        'rest_framework.throttling.UserRateThrottle'  # Dành cho user đã login
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle'
     ],
     'DEFAULT_THROTTLE_RATES': {
-        'anon': '100/min',   # Khách lạ chỉ được gọi 10 lần/phút (Tránh spam API Login/Register)
-        'user': '500/min'   # User thật thì cho gọi 100 lần/phút
+        'anon': '100/min', 
+        'user': '500/min'
     },
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'DEFAULT_PAGINATION_CLASS': 'apps.core.pagination.CustomPagination'
-}
-
-SPECTACULAR_SETTINGS = {
-    'TITLE': 'Spotify Clone API',
-    'DESCRIPTION': 'API documentation for Spotify Clone project',
-    'VERSION': '0.1',
-    'SCHEMA_PATH_PREFIX': r"/api/v1/",
-    'SERVE_INCLUDE_SCHEMA': False,
-    'COMPONENT_SPLIT_REQUEST': True,
 }
 
 SIMPLE_JWT = {
@@ -236,12 +181,71 @@ SIMPLE_JWT = {
     'USER_ID_CLAIM': 'user_id',
     'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
 }
-JWT_AUTH_SAMESITE = 'None'
-JWT_AUTH_SECURE = True
-JWT_AUTH_HTTPONLY = True
-# Password validation
-# https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
 
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Spotify Clone API',
+    'DESCRIPTION': 'API documentation for Spotify Clone project',
+    'VERSION': '0.1',
+    'SCHEMA_PATH_PREFIX': r"/api/v1/",
+    'SERVE_INCLUDE_SCHEMA': False,
+    'COMPONENT_SPLIT_REQUEST': True,
+}
+
+# ==========================================
+# 6. AWS S3 & STATIC/MEDIA FILES
+# ==========================================
+# Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/4.2/howto/static-files/
+STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_DIRS = [BASE_DIR / 'static']
+MEDIA_ROOT = BASE_DIR / ''
+
+# Default primary key field type
+# https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
+
+
+AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
+AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME')
+AWS_S3_ENDPOINT_URL = os.getenv('AWS_S3_ENDPOINT_URL')
+AWS_S3_CUSTOM_DOMAIN = os.getenv('AWS_S3_CUSTOM_DOMAIN')
+AWS_S3_REGION_NAME = 'auto'
+
+# Chỉ định Django dùng S3 cho Media
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+MEDIA_URL = f'{AWS_S3_CUSTOM_DOMAIN}/'
+
+# ==========================================
+# 7. EMAIL CONFIGURATION
+# ==========================================
+# Cấu hình gửi mail qua SMTP của Gmail
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+
+# Đọc từ file .env
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+# Optional: Tên người gửi mặc định (Ví dụ: "Spotify Clone Admin <spotify.clone@gmail.com>")
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+# ==========================================
+# 8. THIRD-PARTY KEYS & MISC SETTINGS
+# ==========================================
+MUSIC_ENCRYPTION_KEY = os.getenv('MUSIC_ENCRYPTION_KEY')
+STRIPE_WEBHOOK_SECRET = os.getenv('STRIPE_WEBHOOK_SECRET')
+STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY', 'sk_test_...')
+
+# Internationalization
+# https://docs.djangoproject.com/en/4.2/topics/i18n/
+LANGUAGE_CODE = 'en-us'
+TIME_ZONE = 'UTC'
+USE_I18N = True
+USE_TZ = True
+
+AUTH_USER_MODEL = 'users.User'
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -256,58 +260,3 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
-
-MUSIC_ENCRYPTION_KEY = os.getenv('MUSIC_ENCRYPTION_KEY')
-STRIPE_WEBHOOK_SECRET = os.getenv('STRIPE_WEBHOOK_SECRET')
-# Internationalization
-# https://docs.djangoproject.com/en/4.2/topics/i18n/
-LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'UTC'
-USE_I18N = True
-USE_TZ = True
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/4.2/howto/static-files/
-STATIC_URL = 'static/'
-STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_DIRS = [BASE_DIR / 'static']
-
-MEDIA_ROOT = BASE_DIR / ''
-
-# Default primary key field type
-# https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
-
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
-AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
-AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME')
-AWS_S3_ENDPOINT_URL = os.getenv('AWS_S3_ENDPOINT_URL')
-AWS_S3_CUSTOM_DOMAIN = os.getenv('AWS_S3_CUSTOM_DOMAIN')
-AWS_S3_REGION_NAME = 'auto'
-
-# Chỉ định Django dùng S3 cho Media
-DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-MEDIA_URL = f'{AWS_S3_CUSTOM_DOMAIN}/'
-
-# 1. Cấu hình cho dj-rest-auth (Đưa ra ngoài dictionary)
-JWT_AUTH_COOKIE = 'access'
-JWT_AUTH_REFRESH_COOKIE = 'refresh'
-JWT_AUTH_HTTPONLY = True
-JWT_AUTH_SECURE = True       # BẮT BUỘC
-JWT_AUTH_SAMESITE = 'None'   # BẮT BUỘC: Phải là chuỗi 'None'
-
-# 2. Cấu hình Core Django (Đảm bảo đồng bộ)
-SESSION_COOKIE_SAMESITE = 'None'
-CSRF_COOKIE_SAMESITE = 'None'
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
-
-# 3. SimpleJWT (Để chắc chắn thầng này không can thiệp ngược)
-from datetime import timedelta
-SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
-    'AUTH_HEADER_TYPES': ('Bearer',),
-    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
-}
