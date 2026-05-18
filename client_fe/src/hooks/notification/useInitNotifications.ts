@@ -28,9 +28,11 @@ export const useSystemWebSocket = () => {
 
     useEffect(() => {
         if (!isAuthenticated) return;
+        
+        const wsUrl = import.meta.env.DEV 
+            ? 'ws://127.0.0.1:8000/ws/notifications/' 
+            : 'wss://nk-music-stream.onrender.com/ws/notifications/';
 
-        const wsUrl = `ws://127.0.0.1:8000/ws/notifications/`; 
-            
         const ws = new WebSocket(wsUrl);
 
         ws.onmessage = (event) => {
