@@ -55,6 +55,7 @@ const AddEditGenreModal: React.FC<AddEditGenreModalProps> = ({ genre, onClose })
         if (imageFile) {
             formData.append('image', imageFile);
         }
+        // update
         if (genre) {
             // update genre đã có
             // ktra nếu ko thay đổi -> ko update
@@ -90,8 +91,10 @@ const AddEditGenreModal: React.FC<AddEditGenreModalProps> = ({ genre, onClose })
             }, {
                 message: `Confirm to update genre "${genre.name}"?`,
             });
-        } else {
-            // tạo mới
+        } 
+        // create
+        else {
+            formData.append('is_active', 'true')
             showConfirm('save', () => {
                 setLoading(true);
                 create(formData as any, { 
