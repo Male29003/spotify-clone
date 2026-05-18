@@ -41,14 +41,14 @@ const AdminSider = () => {
     return (
         <>
             <div 
-                className={`fixed inset-0 bg-black/60 z-[90] sm:hidden transition-opacity duration-300 ${
+                className={`fixed inset-0 bg-black/60 z-40 sm:hidden transition-opacity duration-300 ${
                     isExpanded ? 'opacity-100 visible' : 'opacity-0 invisible'
                 }`}
                 onClick={toggleSider}
             />
             <div 
                 className={`
-                    fixed sm:relative top-0 left-0 h-full bg-panel border-r border-border flex flex-col shrink-0 z-[100] transition-all duration-300 ease-in-out
+                    fixed sm:relative top-0 left-0 h-full bg-panel border-r border-border flex flex-col shrink-0 z-50 transition-all duration-300 ease-in-out
                     ${isExpanded ? 'w-64 translate-x-0' : 'w-64 -translate-x-full sm:w-20 sm:translate-x-0'} 
                 `}
             >
