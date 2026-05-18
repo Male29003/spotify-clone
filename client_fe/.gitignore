@@ -25,3 +25,5 @@ dist-ssr
 
 data
 public/default
+
+.env
