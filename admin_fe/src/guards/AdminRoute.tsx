@@ -3,7 +3,7 @@ import { useAuthStore } from "../stores/auth/authStore";
 import { CustomToast } from "../components/shared/feedback/CustomToast";
 
 const AdminRoute = () => {
-    const { isAuthenticated, user, isLoaded } = useAuthStore();
+    const { isAuthenticated, user } = useAuthStore();
 
     if (!isAuthenticated) return <Navigate to="/login" replace />;
     

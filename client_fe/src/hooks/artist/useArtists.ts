@@ -20,11 +20,11 @@ export const useGetArtistDetail = (short_id: string) => {
 }
 
 export const useFavouriteArtists = () => {
-    const { isAuthenticated, isLoaded } = useAuthStore(state => state)
+    const { isAuthenticated } = useAuthStore(state => state)
     return useQuery({
         queryKey: ['favourite_artists'],
         queryFn: () => listenerArtistApi.getFavourite(),
-        enabled: !!isAuthenticated && isLoaded,
+        enabled: !!isAuthenticated,
     });
 };
 

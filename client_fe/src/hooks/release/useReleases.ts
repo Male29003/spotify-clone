@@ -16,11 +16,11 @@ export const useGetReleases = (search: string = '', page: number = 1, limit: num
 };
 
 export const useGetFavouriteReleases = () => {
-    const { isAuthenticated, isLoaded } = useAuthStore(state => state)
+    const { isAuthenticated } = useAuthStore(state => state)
     return useQuery({
         queryKey: ['favourite_releases'],
         queryFn: () => listenerReleaseApi.getFavourite(),
-        enabled: !!isAuthenticated && isLoaded,
+        enabled: !!isAuthenticated,
     });
 };
 
@@ -40,20 +40,20 @@ export const useGetReleaseDetail = (short_id: string, enabled: boolean = true) =
 };
 
 export const useGetRecommended = () => {
-    const { isAuthenticated, isLoaded } = useAuthStore(state => state)
+    const { isAuthenticated } = useAuthStore(state => state)
     return useQuery({
         queryKey: ['recommended-releases'],
         queryFn: () => listenerReleaseApi.getRecommended(),
-        enabled: !!isAuthenticated && isLoaded
+        enabled: !!isAuthenticated
     })
 }
 
 export const useGetRecent = () => {
-    const { isAuthenticated, isLoaded } = useAuthStore(state => state)
+    const { isAuthenticated } = useAuthStore(state => state)
     return useQuery({
         queryKey: ['recent-releases'],
         queryFn: () => listenerReleaseApi.getRecent(),
-        enabled: !!isAuthenticated && isLoaded
+        enabled: !!isAuthenticated
     })
 }
 
