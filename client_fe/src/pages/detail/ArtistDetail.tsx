@@ -37,7 +37,7 @@ const ArtistDetail: React.FC = () => {
     const latestRelease = releases?.length > 0 ? releases[0] : null;
     const relatedArtists = (relatedArtistsData as any)?.results || []
 
-    if (!artist) return <div className="text-center text-text-main mt-20">Artist not found.</div>;
+    if (!isLoading && !artist) return <div className="text-center text-text-main mt-20">Artist not found.</div>;
 
     const ActionBtns = (
         <>

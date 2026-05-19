@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import Loader from '../../components/shared/ui/Loader';
 import { PlayArrow, BorderColor } from '@mui/icons-material';
 import { usePlayerStore } from '../../stores/usePlayerStore';
 import TrackTable from '../../components/detail/TrackTable';
@@ -38,6 +37,7 @@ const PlaylistDetail: React.FC = () => {
     const isLikedSongs = slug === 'collection-tracks'
     const { data: normalPlaylistData, isLoading: loadingNormalPlaylist } = useGetPlaylistDetail(slug || '', !isLikedSongs );
     const { data: favTracksData, isLoading: loadingFavTracks } = useGetFavouriteTracks() 
+    const currentLoading = isLikedSongs ? loadingFavTracks : loadingNormalPlaylist;
 
     // ==================================================================================================================================================
     // quản lý load more cho danh sách yêu thích
@@ -161,7 +161,7 @@ const PlaylistDetail: React.FC = () => {
         }
     }
 
-    if (!playlist) return <div className="text-center text-text-main mt-20">Not found playlist</div>;
+    if (!currentLoading && !playlist) return <div className="text-center text-text-main mt-20">Not found playlist</div>;
     
     const ActionBtns = isEditing ? (
         <div className="flex items-center gap-4 animate-fadeIn">
@@ -208,13 +208,13 @@ const PlaylistDetail: React.FC = () => {
             />
 
             <DetailPageLayout 
-                isLoading={loadingNormalPlaylist || loadingFavTracks}
+                isLoading={currentLoading}
                 actionBtns={ActionBtns}
                 item={playlist}
                 type='Playlist'
                 totalTracks={tracks.length}
                 mainContent={
-                    (loadingFavTracks || loadingNormalPlaylist) ? 
+                    (currentLoading) ? 
                         <TrackTableSkeleton key={'playlist-skeleton'} rows={5}/>
                     :
                         <TrackTable

@@ -40,7 +40,7 @@ const TrackDetail: React.FC = () => {
             toggleMutation(short_id)
     }
 
-    if (!track) return <div className="text-center text-text-main mt-20">Song not found</div>;
+    if (!isLoading && !track) return <div className="text-center text-text-main mt-20">Song not found</div>;
 
     const trackItem = {
         ...track,
@@ -99,6 +99,7 @@ const TrackDetail: React.FC = () => {
     
     return (
         <DetailPageLayout 
+            isLoading={isLoading}
             actionBtns={ActionBtns}
             item={track}
             type='Track'

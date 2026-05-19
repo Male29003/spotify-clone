@@ -40,12 +40,19 @@ const ReleaseDetail: React.FC = () => {
             toggleMutation(short_id)
     }
     // Xứ lý data
-    if (!release) return <div className="text-center text-text-main mt-20">Release not found</div>;
-
+    if (!isLoading && !release) {
+        return (
+            <div className="flex items-center justify-center min-h-[50vh]">
+                <div className="text-center text-text-main mt-20 text-xl font-bold">
+                    Release not found
+                </div>
+            </div>
+        );
+    }
     const relatedReleases = (relatedReleasesData as any)?.results || [];
     const relatedArtists = (relatedArtistsData as any)?.results || [];
     
-    const tracks = release.tracks || [];
+    const tracks = release?.tracks || [];
 
     const ActionBtns = (
         <>
@@ -101,6 +108,7 @@ const ReleaseDetail: React.FC = () => {
     )
     return (
         <DetailPageLayout 
+            isLoading={isLoading}
             actionBtns={ActionBtns}
             item={release}
             type='Release'
