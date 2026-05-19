@@ -29,8 +29,6 @@ const ArtistDashboard: React.FC = () => {
 
     const { data, isLoading, isError } = useArtistDashboardStats(dateParams);
 
-    if (isLoading) return <Loader />;
-    
     if (isError) {
         return <div className="p-8 text-center text-error font-bold bg-panel rounded-2xl border border-error/20">Connection lost! Cannot load data.</div>;
     }

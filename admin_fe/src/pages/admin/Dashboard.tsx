@@ -28,9 +28,6 @@ const AdminDashboard = () => {
     }, [timeRange]);
   const { data, isLoading } = useAdminDashboardStats(dateParams);
 
-  if (isLoading || !data) {
-    return <div className="p-10 text-center text-lg font-semibold text-text-main">Loading data......</div>;
-  }
   const totalRevenue = (data as any)?.revenue_chart?.reduce((sum: number, item: any) => sum + item.revenue, 0) || 0;
   const totalNewUsers = (data as any)?.user_growth_chart?.reduce((sum: number, item: any) => sum + item.new_users, 0) || 0;
   const topCountries = (data as any)?.top_countries || [];
