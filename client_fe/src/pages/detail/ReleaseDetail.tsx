@@ -64,7 +64,7 @@ const ReleaseDetail: React.FC = () => {
             >
                 <PlayArrow className="text-4xl!" />
             </button>
-            {release.is_favourite ? (
+            {release?.is_favourite ? (
                     <Favorite 
                         className="text-highlight text-4xl! cursor-pointer hover:scale-110 transition-transform" 
                         onClick={handleFavourite}    

@@ -61,7 +61,7 @@ const TrackDetail: React.FC = () => {
             >
                 <PlayArrow className="text-4xl!" />
             </button>
-            {track.is_favourite ? (
+            {track?.is_favourite ? (
                     <Favorite 
                         className="text-highlight text-4xl! cursor-pointer hover:scale-110 transition-transform" 
                         onClick={handleFavourite}    

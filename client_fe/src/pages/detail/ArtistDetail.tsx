@@ -44,7 +44,7 @@ const ArtistDetail: React.FC = () => {
             <button 
                 className="btn-neon-glow w-14 h-14 bg-highlight rounded-full flex items-center justify-center text-text-dark hover:scale-105 transition-transform shadow-xl"
                 onClick={() => {
-                    if (tracks.length > 0) playTrack(tracks[0], tracks);
+                    if (tracks?.length > 0) playTrack(tracks[0], tracks);
                 }}
             >
                 <PlayArrow className="text-4xl!" />
