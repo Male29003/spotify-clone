@@ -458,7 +458,7 @@ const StudioReleaseDetailModal: React.FC<StudioReleaseDetailModalProps> = ({ sho
 
                                     {/* Danh sách bài hát */}
                                     <div className="space-y-2 mt-2">
-                                        {localTracks.length === 0 && 
+                                        {localTracks?.length === 0 && 
                                             <p className="text-center text-text-sub py-6">No tracks in this release yet.</p>
                                         }
                                         
