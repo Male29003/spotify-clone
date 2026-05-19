@@ -16,7 +16,7 @@ interface DataTableProps {
 }
 
 const DataTable: React.FC<DataTableProps> = ({ columns, data, isLoading }) => {
-    if (data.length === 0) return <div className="p-8 text-center text-text-sub">No data found.</div>;
+    if (!isLoading && data.length === 0) return <div className="p-8 text-center text-text-sub">No data found.</div>;
 
     return (
         <div className="w-full overflow-x-auto custom-scrollbar">
