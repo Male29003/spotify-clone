@@ -125,7 +125,7 @@ const AddEditGenreModal: React.FC<AddEditGenreModalProps> = ({ genre, onClose })
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-base/70 backdrop-blur-sm">
                 
-            <div className="relative bg-panel w-full max-w-md p-6 rounded-xl border border-border shadow-2xl">
+            <div className="relative bg-panel w-full max-w-md p-6 rounded-xl border border-border shadow-2xl custom-scrollbar overflow-y-auto">
                 <button 
                     onClick={onClose} 
                     className="absolute right-3 top-4 flex items-center text-text-sub rounded-full hover:text-text-main hover:scale-105 border transition-border duration-300"

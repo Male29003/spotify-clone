@@ -33,7 +33,7 @@ const StaffFormModal = ({ staff, onClose, onSave, isLoading }: any) => {
     const isAdmin = staff?.is_superuser
     const disabledSaveBtn = isAdmin || isLoading || !canSubmitPass
     return (
-        <div className="fixed inset-0 bg-dark/70 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+        <div className="fixed inset-0 bg-dark/70 backdrop-blur-sm flex items-center justify-center z-100 p-4">
             <div className="bg-panel border border-border w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden">
                 <div className="p-6 border-b border-border flex justify-between items-center bg-card">
                     <h2 className="text-xl font-bold">{staff ? `Edit: ${staff.username}` : 'Create New Staff'}</h2>

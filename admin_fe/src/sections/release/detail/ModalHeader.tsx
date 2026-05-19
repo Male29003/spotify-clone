@@ -1,5 +1,5 @@
 import React from "react";
-import { BlockOutlined, CheckCircleOutlined, CloseOutlined } from "@mui/icons-material";
+import { Block, CloseOutlined, SettingsBackupRestore } from "@mui/icons-material";
 import type { IRelease } from "../../../types";
 
 interface ModalHeaderProps {
@@ -55,35 +55,29 @@ const ModalHeader: React.FC<ModalHeaderProps> = ({ release, isArtist, handleAdmi
                         Released date: {release.release_date || 'N/A'}
                     </p>
                 </div>
-                
             </div>
             {/* Nút block và unblock của thk admin */}
             {!isArtist && !isPending && (
-                <button 
-                    onClick={handleAdminToggleStatus}
-                    className={`text-sm p-2 rounded-full transition-colors font-bold ${
-                        !isBlocked ? 'bg-error/20 text-error/95 hover:bg-error/40' : 'bg-highlight/20 text-highlight/80 hover:bg-highlight/40'
-                    }`}
-                    title={!isBlocked ? "Block Release" : "Unblock Release"}
-                >
-                    {!isBlocked ? (
-                        <> Block <BlockOutlined /> </>
-                    ) : (
-                        <> Unblock <CheckCircleOutlined /> </>
-                    )}
-                </button>
-            )}
-            
-            {/* Nút đóng cái mdodal */}
-            <button 
-                onClick={(e) => {
-                    e.preventDefault();
-                    handleClose(); 
-                }} 
-                className="text-text-sub hover:text-text-main bg-search p-2 rounded-full transition-colors"
-            >
-                <CloseOutlined />
-            </button>
+                <div className="relative z-50 flex shrink-0">
+                    <button 
+                        onClick={handleAdminToggleStatus}
+                        className={`absolute top-20 right-0 md:right-10 px-4 py-2 sm:px-6 sm:py-2.5 flex items-center gap-2 rounded-full font-bold transition-transform hover:scale-105 shadow-lg
+                            ${!isBlocked ? 'bg-error/10 text-error border border-error/50 hover:bg-error hover:text-text-main' 
+                                        : 'bg-highlight/10 text-highlight border border-highlight/50 hover:bg-highlight hover:text-text-main'}`}
+                        title={!isBlocked ? "Block Release" : "Unblock Release"}
+                    >
+                        {!isBlocked ? 
+                            <>
+                                <Block fontSize="small"/> <span className="sr-only md:not-sr-only md:inline">Block</span>
+                            </>
+                        : 
+                            <>
+                                <SettingsBackupRestore fontSize="small"/> <span className="sr-only md:not-sr-only md:inline">Unblock</span>
+                            </>
+                        }
+                    </button>
+                </div>
+            )}    
         </div>
     )
 }

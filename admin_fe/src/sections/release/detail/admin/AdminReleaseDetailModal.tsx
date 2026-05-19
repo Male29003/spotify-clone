@@ -1,5 +1,5 @@
 import React from "react";
-import { Block, CheckCircleOutlined, WarningOutlined } from "@mui/icons-material";
+import { Block, CheckCircleOutlined, CloseOutlined, WarningOutlined } from "@mui/icons-material";
 import { usePlayerStore } from "../../../../stores/usePlayerStore";
 import { useAdminToggleRelease, useGetReleaseDetail } from "../../../../hooks/release/useReleases";
 import Loader from "../../../../components/shared/ui/Loader";
@@ -13,6 +13,7 @@ import ModalHeader from "../ModalHeader";
 import ModalInfoSection from "../ModalInfoSection";
 import PlayingAnimation from "../../../../components/shared/ui/PlayingAnimation";
 import { BLOCKED_REASON } from "../../../../constants/constants";
+import { ReleaseDetailSkeleton } from "../../../../components/shared/skeleton/ReleaseDetailSkeleton";
 
 interface AdminReleaseDetailModalProps {
     short_id: string;
@@ -148,94 +149,111 @@ const AdminReleaseDetailModal: React.FC<AdminReleaseDetailModalProps> = ({ short
     };
 
     if (error) return <div className="fixed inset-0 z-50 flex items-center justify-center bg-base/70 text-text-main">Failed to load release details.</div>;
-    if (isLoading) return <div className="fixed inset-0 z-50 flex items-center justify-center bg-base/70"><Loader /></div>;
     if (!release) return null;
 
     const allTracksBlocked = tracks.length > 0 && tracks.every((t: any) => !t.is_active || t.is_blocked);
 
     return (
         <div className="fixed inset-0 z-100 flex items-center justify-center bg-base/70 backdrop-blur-sm p-4">
-            <div className="bg-panel w-full max-w-4xl h-[90vh] flex flex-col rounded-3xl border border-border shadow-2xl relative animate-fadeIn overflow-hidden">
-                {blockingRelease && 
-                    <div className="absolute inset-0 z-110 bg-base/50 flex justify-center items-center">
-                        <Loader />
-                    </div>
-                }
-                
-                <ModalHeader 
-                    isArtist={false}
-                    release={release}
-                    handleAdminToggleStatus={handleAdminToggleStatus}
-                    handleClose={handleClose}
-                />
-
-                <div className="flex-1 overflow-y-auto custom-scrollbar p-8">
-                    <ModalInfoSection 
-                        isArtist={false} 
-                        release={release}
-                        onDataChange={() => {}}
-                    />
-                    
-                    <div>
-                        {allTracksBlocked && (
-                            <div className="bg-error/10 border border-error/20 p-4 rounded-xl mt-5 text-error/95 text-sm">
-                                <WarningOutlined fontSize="medium" className="mr-2"/> 
-                                All tracks in this release are currently blocked or inactive.
+            <div className="relative w-full max-w-4xl mx-auto">
+                {/* Nút đóng cái mdodal header */}
+                <button 
+                    onClick={(e) => {
+                        e.preventDefault();
+                        handleClose(); 
+                    }} 
+                    className="absolute top-4 right-5 z-50 
+                            text-text-sub bg-panel/50 backdrop-blur-md rounded-full border border-hover 
+                            hover:text-text-main hover:bg-panel hover:scale-110 p-2 transition-all duration-300 shadow-lg"
+                >
+                    <CloseOutlined fontSize="medium" />
+                </button>
+                {isLoading ? 
+                    <ReleaseDetailSkeleton />
+                :
+                    <div className="bg-panel w-full h-[90vh] flex flex-col rounded-3xl border border-border shadow-2xl relative animate-fadeIn overflow-hidden custom-scrollbar overflow-y-auto">
+                        {blockingRelease && 
+                            <div className="absolute inset-0 z-110 bg-base/50 flex justify-center items-center">
+                                <Loader />
                             </div>
-                        )}
+                        }
                         
-                        <div className="mt-5 mb-10">
-                            <h3 className="text-xl font-bold text-text-main mb-4">Tracks List</h3>
-                            <div className="space-y-2">
-                                {tracks.map((track: any, index: number) => {
-                                    const isTrackUnavailable = !track.is_active || track.is_blocked;
-                                    return (
-                                        <div 
-                                            key={track.short_id}
-                                            onClick={() => !isTrackUnavailable && playTrack(track, tracks)}
-                                            className={`flex items-center justify-between p-3 rounded-xl border transition-colors 
-                                                ${isTrackUnavailable ? 'cursor-not-allowed bg-base/50' : 'hover:bg-hover cursor-pointer bg-search'}
-                                                ${currentTrack?.short_id === track.short_id ? 'border-highlight bg-highlight/10' : 'border-transparent'}`}
-                                        >
-                                            <div className="flex items-center gap-4">
-                                                <span className={`w-4 text-center ${currentTrack?.short_id === track.short_id ? 'text-highlight' : 'text-text-sub'}`}>
-                                                    {index + 1}
-                                                </span>
-                                                <div className="flex flex-col">
-                                                    <span className={`font-medium ${currentTrack?.short_id === track.short_id ? 'text-highlight' : 'text-text-main'}`}>
-                                                        {track.title}
-                                                    </span>
-                                                    {isTrackUnavailable && (
-                                                        <span className="text-[10px] text-error/95 font-bold uppercase mt-0.5">
-                                                            {track.is_blocked ? 'Blocked by Admin' : 'Deactivated'}
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            </div>
-                                            
-                                            <div className="flex gap-5 items-center justify-between">
-                                                {currentTrack?.short_id === track.short_id && isPlaying && <PlayingAnimation />}
-                                                <span className="text-text-sub text-xs">{track.duration}</span>
-                                                
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleAdminBlockTrack(track);
-                                                    }}
-                                                    className={`p-2 rounded-full hover:scale-105 transition-all ${isTrackUnavailable ? 'text-highlight hover:bg-highlight/10' : 'text-error hover:bg-error/10'} `}
-                                                    title={isTrackUnavailable ? "Unblock this song" : "Block this song"}
+                        <ModalHeader 
+                            isArtist={false}
+                            release={release}
+                            handleAdminToggleStatus={handleAdminToggleStatus}
+                            handleClose={handleClose}
+                        />
+
+                        <div className="flex-1 overflow-y-auto custom-scrollbar p-8">
+                            <ModalInfoSection 
+                                isArtist={false} 
+                                release={release}
+                                onDataChange={() => {}}
+                            />
+                            
+                            <div>
+                                {allTracksBlocked && (
+                                    <div className="bg-error/10 border border-error/20 p-4 rounded-xl mt-5 text-error/95 text-sm">
+                                        <WarningOutlined fontSize="medium" className="mr-2"/> 
+                                        All tracks in this release are currently blocked or inactive.
+                                    </div>
+                                )}
+                                
+                                <div className="mt-5 mb-10">
+                                    <h3 className="text-xl font-bold text-text-main mb-4">Tracks List</h3>
+                                    <div className="space-y-2">
+                                        {tracks.map((track: any, index: number) => {
+                                            const isTrackUnavailable = !track.is_active || track.is_blocked;
+                                            return (
+                                                <div 
+                                                    key={track.short_id}
+                                                    onClick={() => !isTrackUnavailable && playTrack(track, tracks)}
+                                                    className={`flex items-center justify-between p-3 rounded-xl border transition-colors 
+                                                        ${isTrackUnavailable ? 'cursor-not-allowed bg-base/50' : 'hover:bg-hover cursor-pointer bg-search'}
+                                                        ${currentTrack?.short_id === track.short_id ? 'border-highlight bg-highlight/10' : 'border-transparent'}`}
                                                 >
-                                                    {isTrackUnavailable ? <CheckCircleOutlined /> : <Block />}
-                                                </button>
-                                            </div>
-                                        </div>
-                                    )
-                                })}
+                                                    <div className="flex items-center gap-4">
+                                                        <span className={`w-4 text-center ${currentTrack?.short_id === track.short_id ? 'text-highlight' : 'text-text-sub'}`}>
+                                                            {index + 1}
+                                                        </span>
+                                                        <div className="flex flex-col">
+                                                            <span className={`font-medium ${currentTrack?.short_id === track.short_id ? 'text-highlight' : 'text-text-main'}`}>
+                                                                {track.title}
+                                                            </span>
+                                                            {isTrackUnavailable && (
+                                                                <span className="text-[10px] text-error/95 font-bold uppercase mt-0.5">
+                                                                    {track.is_blocked ? 'Blocked by Admin' : 'Deactivated'}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div className="flex gap-5 items-center justify-between">
+                                                        {currentTrack?.short_id === track.short_id && isPlaying && <PlayingAnimation />}
+                                                        <span className="text-text-sub text-xs">{track.duration}</span>
+                                                        
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleAdminBlockTrack(track);
+                                                            }}
+                                                            className={`p-2 rounded-full hover:scale-105 transition-all ${isTrackUnavailable ? 'text-highlight hover:bg-highlight/10' : 'text-error hover:bg-error/10'} `}
+                                                            title={isTrackUnavailable ? "Unblock this song" : "Block this song"}
+                                                        >
+                                                            {isTrackUnavailable ? <CheckCircleOutlined /> : <Block />}
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            )
+                                        })}
+                                    </div>
+                                </div>
+                                <Player />
                             </div>
                         </div>
-                        <Player />
                     </div>
-                </div>
+                }
             </div>
         </div>
     );

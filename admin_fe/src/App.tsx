@@ -3,7 +3,7 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AppRoutes } from './routes';
 import { Toaster } from 'react-hot-toast';
-import ConfirmModal from './components/shared/ui/ConfirmModal';
+import ConfirmModal from './components/shared/feedback/ConfirmModal';
 
 const queryClient = new QueryClient({
   defaultOptions: {

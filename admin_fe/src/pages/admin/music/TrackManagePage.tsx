@@ -11,7 +11,7 @@ import SearchInput from '../../../components/main_ui/SearchInput';
 import { useConfirmModalStore } from '../../../stores/useConfirmModalStore';
 import { CustomToast } from '../../../components/shared/feedback/CustomToast';
 import Filter from '../../../components/main_ui/Filter';
-import BlockConfirmModal from '../../../components/shared/ui/BlockConfirmModal';
+import BlockConfirmModal from '../../../components/shared/feedback/BlockConfirmModal';
 import { BLOCKED_REASON } from '../../../constants/constants';
 import { useBlockModalStore } from '../../../stores/useBlockModalStore';
 

@@ -113,9 +113,8 @@ const TrackDetailModal: React.FC<TrackDetailModalProps> = ({ track, onClose }) =
     if (!track) return null;
 
     return (
-        <div className="fixed inset-0 z-100 flex items-center justify-center bg-base/70 backdrop-blur-sm p-4">
-            <div className="bg-panel w-full max-w-4xl p-8 rounded-3xl border border-border shadow-2xl relative animate-fadeIn">
-                
+        <div className="fixed inset-0 z-100 flex items-center justify-center bg-base/70 backdrop-blur-sm p-4 ">
+            <div className="bg-panel w-full max-w-4xl p-8 rounded-3xl border border-border shadow-2xl relative animate-fadeIn custom-scrollbar overflow-y-auto max-h-[90vh]">
                 <button 
                     onClick={onClose} 
                     className="absolute top-6 right-6 text-text-sub hover:text-text-main hover:bg-hover p-2 rounded-full transition-colors"

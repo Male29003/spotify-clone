@@ -73,7 +73,7 @@ const AdminSider = () => {
                 </div>
 
                 {/* Danh sách Menu */}
-                <nav className={`p-4 flex flex-col gap-2 flex-1 custom-scrollbar overflow-y-auto overflow-x-hidden`}>
+                <nav className={`p-4 flex flex-col gap-2 flex-1 custom-scrollbar ${isExpanded ? 'overflow-y-auto overflow-x-hidden' : '' }`}>
                     { menu.map((item) => {
                     if(item && 'children' in item && item.children) {
                         const isOpen = openMenu.includes(item.key);

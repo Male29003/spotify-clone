@@ -1,4 +1,5 @@
 import React from 'react';
+import DataTableSkeleton from '../shared/skeleton/DataTableSkeleton';
 
 export interface Column {
     key: string;
@@ -15,7 +16,6 @@ interface DataTableProps {
 }
 
 const DataTable: React.FC<DataTableProps> = ({ columns, data, isLoading }) => {
-    if (isLoading) return <div className="p-8 text-center text-text-sub">Loading...</div>;
     if (data.length === 0) return <div className="p-8 text-center text-text-sub">No data found.</div>;
 
     return (
@@ -35,21 +35,25 @@ const DataTable: React.FC<DataTableProps> = ({ columns, data, isLoading }) => {
                             ))}
                         </tr>
                     </thead>
-                    <tbody className='divide-y divide-border'>
-                        {data.map((row, rowIndex) => (
-                            <tr key={row.id || rowIndex} className='hover:bg-hover transition-colors'>
-                                {columns.map(col => (
-                                    <td 
-                                        key={col.key} 
-                                        className={`p-4 ${col.className || ''}`}
-                                        style={{ width: col.width }}
-                                    >
-                                        {col.render(row, rowIndex)}
-                                    </td>
-                                ))}
-                            </tr>
-                        ))}
-                    </tbody>
+                    {isLoading ? 
+                        <DataTableSkeleton columnCount={columns.length}/>
+                    :
+                        <tbody className='divide-y divide-border'>
+                            {data.map((row, rowIndex) => (
+                                <tr key={row.id || rowIndex} className='hover:bg-hover transition-colors'>
+                                    {columns.map(col => (
+                                        <td 
+                                            key={col.key} 
+                                            className={`p-4 ${col.className || ''}`}
+                                            style={{ width: col.width }}
+                                        >
+                                            {col.render(row, rowIndex)}
+                                        </td>
+                                    ))}
+                                </tr>
+                            ))}
+                        </tbody>
+                    }
                 </table>
             </div>
         </div>

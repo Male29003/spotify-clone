@@ -6,7 +6,7 @@ import AdminSider from './shared/Sider';
 import AdminHeader from './shared/Header';
 import Loader from '../components/shared/ui/Loader';
 import { CustomToast } from '../components/shared/feedback/CustomToast';
-import BlockConfirmModal from '../components/shared/ui/BlockConfirmModal';
+import BlockConfirmModal from '../components/shared/feedback/BlockConfirmModal';
 import { useInitNotifications } from '../hooks/notification/useInitNotifications';
 
 const SystemAdminLayout: React.FC = () => {
