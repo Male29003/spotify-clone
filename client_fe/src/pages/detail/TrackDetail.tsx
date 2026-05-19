@@ -127,7 +127,7 @@ const TrackDetail: React.FC = () => {
                     {/* You may like - Tracks */}
                     {loadingRelatedTrack ? <MediaSectionSkeleton key={'related_tracks-skeleton'} title='Songs You May Also Like' />
                     : 
-                        relatedTracks.length > 0 && (
+                        relatedTracks?.length > 0 && (
                             <div className="flex flex-col gap-4">
                                 <h2 className="text-2xl font-bold text-text-main">Songs You May Also Like</h2>
                                 <MediaSection 
@@ -141,7 +141,7 @@ const TrackDetail: React.FC = () => {
                     {/* You may like - Releases */}
                     {loadingRelatedRelease ? <MediaSectionSkeleton key={'related_releases-skeleton'} title='Releases You May Also Like' />
                     :
-                        relatedReleases.length > 0 && (
+                        relatedReleases?.length > 0 && (
                             <div className="flex flex-col gap-4">
                                 <h2 className="text-2xl font-bold text-text-main">Releases You May Also Like</h2>
                                 <MediaSection 
@@ -155,7 +155,7 @@ const TrackDetail: React.FC = () => {
                     {/* You may like - Artists */}
                     {loadingRelatedArtist ? <MediaSectionSkeleton key={'related_artists-skeleton'} title='Artists You May Like'  type='artist' />
                     :  
-                        relatedArtists.length > 0 && (
+                        relatedArtists?.length > 0 && (
                             <div className="flex flex-col gap-4">
                                 <h2 className="text-2xl font-bold text-text-main">Artists You May Like</h2>
                                 <MediaSection 

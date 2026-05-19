@@ -69,7 +69,7 @@ const ArtistDetail: React.FC = () => {
             item={artist}
             type='Artist'
             actionBtns={ActionBtns}
-            totalTracks={tracks.length}
+            totalTracks={tracks?.length}
             mainContent={
                 isLoading ? <TrackTableSkeleton key={'skeleton-track-table'} rows={5} />
                 :
@@ -83,20 +83,20 @@ const ArtistDetail: React.FC = () => {
                     <h3 className="text-lg font-bold text-text-main">Most Popular Release</h3>
                     {latestRelease ? (
                         <div 
-                            onClick={() => navigate(`/release/${latestRelease.short_id}`)}
+                            onClick={() => navigate(`/release/${latestRelease?.short_id}`)}
                             className="bg-card hover:bg-hover p-4 rounded-xl cursor-pointer transition-all flex items-center gap-4 border border-border/50 shadow-md group"
                         >
                             <img 
-                                src={latestRelease.image} 
-                                alt={latestRelease.title}
+                                src={latestRelease?.image} 
+                                alt={latestRelease?.title}
                                 className="w-20 h-20 rounded-md object-cover shadow-md group-hover:scale-105 transition-transform" 
                             />
                             <div className="flex flex-col overflow-hidden">
                                 <span className="text-text-main font-bold truncate">
-                                    {latestRelease.title}
+                                    {latestRelease?.title}
                                 </span>
                                 <span className="text-text-sub text-sm capitalize mt-1">
-                                    {latestRelease.type || 'Release'}
+                                    {latestRelease?.type || 'Release'}
                                 </span>
                             </div>
                         </div>
@@ -110,7 +110,7 @@ const ArtistDetail: React.FC = () => {
                     {/* Dicography */}
                     {isLoading ? <MediaSectionSkeleton key={'dicography-skeleton'} title='Discography' itemCount={10} />
                     :
-                        releases.length > 0 && (
+                        releases?.length > 0 && (
                             <div className="flex flex-col gap-4">
                                 <div className="flex items-center justify-between">
                                     <h2 className="text-2xl font-bold text-text-main hover:underline cursor-pointer">Discography</h2>
@@ -136,7 +136,7 @@ const ArtistDetail: React.FC = () => {
                     {/* You may like - Artists */}
                     {loadingRelatedArtist ? <MediaSectionSkeleton key={'related_releases-skeleton'} title='' type='artist' />
                     :
-                        relatedArtists.length > 0 && (
+                        relatedArtists?.length > 0 && (
                             <div className="flex flex-col gap-4">
                                 <h2 className="text-2xl font-bold text-text-main">Artists You May Like</h2>
                                 <MediaSection 
