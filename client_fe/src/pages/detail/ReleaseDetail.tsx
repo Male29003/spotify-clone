@@ -11,9 +11,9 @@ import { CustomToast } from '../../components/shared/feedback/CustomToast';
 import { PlayArrow, FavoriteBorder, Favorite, Download, Cancel } from '@mui/icons-material';
 import { useGetRelatedReleases, useGetReleaseDetail, useToggleFavouriteRelease } from '../../hooks/release/useReleases';
 import MediaSection from '../../components/shared/media/MediaSection';
-import { TrackTableSkeleton } from '../../components/shared/skeleton/TrackTableSkeleton';
-import { MediaSectionSkeleton } from '../../components/shared/skeleton/MediaSectionSkeleton';
-import { ArtistMiniCardSkeleton } from '../../components/shared/skeleton/ArtistMiniCardSkeleton';
+import { TrackTableSkeleton } from '../../components/skeleton/TrackTableSkeleton';
+import { MediaSectionSkeleton } from '../../components/skeleton/MediaSectionSkeleton';
+import { ArtistMiniCardSkeleton } from '../../components/skeleton/ArtistMiniCardSkeleton';
 
 const ReleaseDetail: React.FC = () => {
     const { short_id } = useParams<{ short_id: string }>();

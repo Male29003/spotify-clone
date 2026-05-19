@@ -11,9 +11,9 @@ import ArtistMiniCard from '../../components/shared/ui/ArtistMiniCard';
 import { useGetRelatedReleases } from '../../hooks/release/useReleases';
 import { useGetRelatedArtists } from '../../hooks/artist/useArtists';
 import MediaSection from '../../components/shared/media/MediaSection';
-import { TrackTableSkeleton } from '../../components/shared/skeleton/TrackTableSkeleton';
-import { MediaSectionSkeleton } from '../../components/shared/skeleton/MediaSectionSkeleton';
-import { ArtistMiniCardSkeleton } from '../../components/shared/skeleton/ArtistMiniCardSkeleton';
+import { TrackTableSkeleton } from '../../components/skeleton/TrackTableSkeleton';
+import { MediaSectionSkeleton } from '../../components/skeleton/MediaSectionSkeleton';
+import { ArtistMiniCardSkeleton } from '../../components/skeleton/ArtistMiniCardSkeleton';
 
 const TrackDetail: React.FC = () => {
     const{ user, isAuthenticated } = useAuthStore(state => state)

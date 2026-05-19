@@ -1,6 +1,6 @@
 import React from "react";
 import DetailBanner from "../../components/detail/DetailBanner";
-import DetailBannerSkeleton from "../../components/shared/skeleton/DetailBannerSkeleton";
+import DetailBannerSkeleton from "../../components/skeleton/DetailBannerSkeleton";
 
 interface DetailLayoutProps {
     isLoading?: boolean

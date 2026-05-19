@@ -1,6 +1,6 @@
 import React from 'react';
 import MediaSection from '../../components/shared/media/MediaSection';
-import { MediaSectionSkeleton } from '../../components/shared/skeleton/MediaSectionSkeleton';
+import { MediaSectionSkeleton } from '../../components/skeleton/MediaSectionSkeleton';
 import Loader from '../../components/shared/ui/Loader';
 import { useGetTrendingReleases, useGetRecent, useGetRecommended } from '../../hooks/release/useReleases';
 import { useTrendingArtists } from '../../hooks/artist/useArtists';

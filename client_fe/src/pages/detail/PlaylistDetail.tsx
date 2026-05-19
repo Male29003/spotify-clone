@@ -12,7 +12,7 @@ import { CustomToast } from '../../components/shared/feedback/CustomToast';
 import { LIKED_SONGS_BASE } from '../../constants/constants';
 import { useGetFavouriteTracks } from '../../hooks/track/useTracks';
 import { api } from '../../api/axiosConfig';
-import { TrackTableSkeleton } from '../../components/shared/skeleton/TrackTableSkeleton';
+import { TrackTableSkeleton } from '../../components/skeleton/TrackTableSkeleton';
 
 const PlaylistDetail: React.FC = () => {
     // Lấy slug

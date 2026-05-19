@@ -1,6 +1,6 @@
 import React from 'react';
 import {  useNavigate, useParams } from 'react-router-dom';
-import { TrackTableSkeleton } from '../../components/shared/skeleton/TrackTableSkeleton';
+import { TrackTableSkeleton } from '../../components/skeleton/TrackTableSkeleton';
 import { PlayArrow } from '@mui/icons-material';
 import { usePlayerStore } from '../../stores/usePlayerStore';
 import TrackTable from '../../components/detail/TrackTable';
@@ -9,7 +9,8 @@ import { useGetArtistDetail, useGetRelatedArtists, useToggleFavouriteArtist } fr
 import { CustomToast } from '../../components/shared/feedback/CustomToast';
 import DetailPageLayout from '../../layouts/detail/DetailLayout';
 import MediaSection from '../../components/shared/media/MediaSection';
-import { MediaSectionSkeleton } from '../../components/shared/skeleton/MediaSectionSkeleton';
+import { MediaSectionSkeleton } from '../../components/skeleton/MediaSectionSkeleton';
+import { MostPopularSkeleton } from '../../components/skeleton/MostPopularReleaseSkeleton';
 
 const ArtistDetail: React.FC = () => {
     const navigate = useNavigate()
@@ -81,7 +82,9 @@ const ArtistDetail: React.FC = () => {
             subContent={
                 <div className="flex flex-col gap-4">
                     <h3 className="text-lg font-bold text-text-main">Most Popular Release</h3>
-                    {latestRelease ? (
+                    {isLoading ? (
+                        <MostPopularSkeleton />
+                    ) : latestRelease ? (
                         <div 
                             onClick={() => navigate(`/release/${latestRelease?.short_id}`)}
                             className="bg-card hover:bg-hover p-4 rounded-xl cursor-pointer transition-all flex items-center gap-4 border border-border/50 shadow-md group"
