@@ -139,7 +139,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ onClose }) => {
                                     <button
                                         onClick={handleImageRemove}
                                         type='button'
-                                        className="absolute top-2 right-8 bg-black/60 hover:bg-black hover:scale-110 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-all z-20 shadow-md"
+                                        className="absolute top-2 right-8 bg-base/60 hover:bg-base hover:scale-110 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-all z-20 shadow-md"
                                         title="Remove photo"
                                     >
                                         <DeleteOutlined fontSize="small" />

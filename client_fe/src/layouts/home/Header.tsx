@@ -79,7 +79,7 @@ const CustomHeader = () => {
                         {/* nút premium bên ngoài khi màn hình lớn -> khi thu nhỏ thì nằm trong dropdown profile */}
                         {!user?.is_premium && 
                             <button 
-                                className="hidden md:block group relative px-6 py-2 rounded-full overflow-hidden text-black text-sm font-bold tracking-wide
+                                className="hidden md:block group relative px-6 py-2 rounded-full overflow-hidden text-text-dark text-sm font-bold tracking-wide
                                         bg-highlight shadow-lg hover:shadow-[0_0_20px_var(--theme-highlight)] 
                                         hover:scale-105 transition-all duration-300"
                                 onClick={() => navigate('/subscription')}    

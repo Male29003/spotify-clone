@@ -32,7 +32,7 @@ const ImageCropperModal = ({ rawUrl, onClose, onCropSuccess }: { rawUrl: string,
                         <CloseOutlined />
                     </button>
                 </div>
-                <div className="relative w-full h-80 bg-black">
+                <div className="relative w-full h-80 bg-base">
                     <Cropper 
                     image={rawUrl} 
                     crop={crop} 

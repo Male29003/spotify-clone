@@ -42,7 +42,7 @@ const DetailBanner: React.FC<DetailBannerProps> = ({ item, totalTracks, type, ed
                     <span className="flex items-center gap-2 text-sm font-semibold uppercase tracking-widest text-text-main drop-shadow-md">
                         <Verified className="text-info/85" fontSize="small" /> Verified Artist
                     </span>
-                    <h1 className="text-5xl md:text-8xl font-black tracking-tighter drop-shadow-xl line-clamp-2">
+                    <h1 className="text-5xl md:text-8xl font-bold tracking-tighter drop-shadow-xl line-clamp-2">
                         {item?.stage_name}
                     </h1>
                     <span className="text-sm font-medium mt-2 drop-shadow-md">
@@ -55,7 +55,7 @@ const DetailBanner: React.FC<DetailBannerProps> = ({ item, totalTracks, type, ed
 
     // dành cho các loại còn lại
     return (
-        <div className="relative flex flex-col sm:flex-row items-center gap-6 md:gap-8 p-6 md:p-10 pt-24 md:pt-32 z-0 border-b border-white/5 overflow-hidden">
+        <div className="relative flex flex-col sm:flex-row items-center gap-6 md:gap-8 p-6 md:p-10 pt-24 md:pt-32 z-0 border-b border-text-main/5 overflow-hidden">
             <div 
                 className="absolute inset-0 opacity-40 blur-[100px] -z-20 pointer-events-none scale-150"
                 style={{ backgroundImage: `url(${item?.image})`, backgroundSize: 'cover' }}

@@ -1,7 +1,9 @@
 import React from "react";
 import DetailBanner from "../../components/detail/DetailBanner";
+import DetailBannerSkeleton from "../../components/shared/skeleton/DetailBannerSkeleton";
 
 interface DetailLayoutProps {
+    isLoading?: boolean
     item: any;
     type: 'Playlist' | 'Release' | 'Artist' | 'Track';
     totalTracks: number;
@@ -13,6 +15,7 @@ interface DetailLayoutProps {
 }
 
 const DetailPageLayout: React.FC<DetailLayoutProps> = ({
+    isLoading,
     item,
     type,
     totalTracks,
@@ -24,23 +27,31 @@ const DetailPageLayout: React.FC<DetailLayoutProps> = ({
 }) => {
     return (
         <div className="relative w-full min-h-full pb-10 flex flex-col bg-panel/30 overflow-x-hidden">
-            <DetailBanner 
-                item={item} 
-                type={type} 
-                totalTracks={totalTracks} 
-                editConfig={editConfig}
-            />
+            {(isLoading || !item) ? (
+                <DetailBannerSkeleton type={type} />
+            ) : (
+                <DetailBanner 
+                    item={item} 
+                    type={type} 
+                    totalTracks={totalTracks} 
+                    editConfig={editConfig}
+                />
+            )}
 
             <div className="relative z-10 w-full px-6 md:px-8">
                 {/* Lớp nền mờ tiếp nối banner */}
                 <div 
                     className="absolute top-0 left-0 right-0 h-8 blur-[100px] -z-20 pointer-events-none"
-                    style={{ backgroundImage: `url(${item?.image})`, backgroundSize: 'cover' }}
+                    style={{ backgroundImage: item?.image ? `url(${item?.image})` : 'none', backgroundSize: 'cover' }}
                 />
                 
                 {/* Action Bar */}
                 <div className="flex items-center gap-6 py-6 sticky top-0 z-20 backdrop-blur-md">
-                    {actionBtns}
+                    {(isLoading || !item) ? (
+                        <div className="w-14 h-14 bg-hover animate-pulse rounded-full" />
+                    ) : (
+                        actionBtns
+                    )}
                 </div>
 
                 <div className="flex flex-col xl:flex-row items-start gap-10 mt-4">

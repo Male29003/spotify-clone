@@ -259,10 +259,10 @@ const ArtistProfilePage = () => {
                                     e.stopPropagation();
                                     bannerInputRef.current?.click();
                                 }}
-                                className="absolute top-4 right-4 z-20 bg-black/40 hover:bg-black/70 backdrop-blur-md px-4 py-2 rounded-full flex items-center gap-2 border border-white/20 transition-all shadow-lg hover:scale-105"
+                                className="absolute top-4 right-4 z-20 bg-dark/40 hover:bg-dark/70 backdrop-blur-md px-4 py-2 rounded-full flex items-center gap-2 border border-border transition-all shadow-lg hover:scale-105"
                             >
-                                <EditOutlined className="text-white" fontSize="small" />
-                                <span className="text-white font-bold text-sm">Edit Banner</span>
+                                <EditOutlined className="text-text-dark" fontSize="small" />
+                                <span className="text-text-dark font-bold text-sm">Edit Banner</span>
                             </button>
                         )}
                         <input 
@@ -286,8 +286,8 @@ const ArtistProfilePage = () => {
                                 ${isEditing ? 'group-hover:brightness-50 group-hover:scale-105' : ''}`}
                         />                
                         {isEditing && 
-                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-full bg-black/40 pointer-events-none">
-                                <EditOutlined className="text-white text-4xl drop-shadow-md" />
+                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-full bg-dark/40 pointer-events-none">
+                                <EditOutlined className="text-text-dark text-4xl drop-shadow-md" />
                             </div>
                         }
                         <input 
@@ -311,7 +311,7 @@ const ArtistProfilePage = () => {
                         </div>
                         
                         {isEditing ? (
-                            <div className="flex items-center gap-5 text-text-main font-black w-full">
+                            <div className="flex items-center gap-5 text-text-main font-bold w-full">
                                 <label />Stage name:
                                 <input 
                                     name="stage_name" 

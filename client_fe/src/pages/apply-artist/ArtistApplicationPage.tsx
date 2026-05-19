@@ -140,7 +140,7 @@ const ArtistApplicationPage: React.FC = () => {
             </button>
             <div className="max-w-3xl mx-auto py-10 px-6 animate-fadeIn text-text-main relative">
                 <div className="bg-card p-8 md:p-10 rounded-2xl shadow-2xl border border-border">
-                    <h1 className="text-4xl font-black text-text-main mb-2">You wanna be an artist</h1>
+                    <h1 className="text-4xl font-bold text-text-main mb-2">You wanna be an artist</h1>
                     <p className="text-text-sub mb-8 text-sm">Please provide correct and legal information for for identity verification to grant you permission to release your music.</p>
                     
                     <form onSubmit={handleSubmit} className="space-y-8">
@@ -189,7 +189,7 @@ const ArtistApplicationPage: React.FC = () => {
                                         <button 
                                             type="button" 
                                             onClick={() => setIsCropping(true)}
-                                            className="px-4 py-2 bg-highlight/10 text-highlight hover:bg-highlight hover:text-black text-sm font-bold rounded-full transition-colors flex items-center gap-1"
+                                            className="px-4 py-2 bg-highlight/10 text-highlight hover:bg-highlight hover:text-text-dark text-sm font-bold rounded-full transition-colors flex items-center gap-1"
                                         >
                                             <CropOutlined fontSize="small" /> Crop
                                         </button>
@@ -337,7 +337,7 @@ const ArtistApplicationPage: React.FC = () => {
                             <button 
                                 type="submit" 
                                 disabled={isPending} 
-                                className="w-full bg-highlight text-text-dark font-black py-4 rounded-full text-lg hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 shadow-xl shadow-highlight/20"
+                                className="w-full bg-highlight text-text-dark font-bold py-4 rounded-full text-lg hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 shadow-xl shadow-highlight/20"
                             >
                                 {isPending ? "Processing..." : "Sent Application"}
                             </button>
@@ -361,7 +361,7 @@ const ArtistApplicationPage: React.FC = () => {
                 {/* xem ảnh */}
                 {(viewingAvatar || viewingDocument) && (
                     <div 
-                        className="fixed inset-0 z-100 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 cursor-zoom-out animate-fadeIn"
+                        className="fixed inset-0 z-100 bg-base/90 backdrop-blur-sm flex items-center justify-center p-4 cursor-zoom-out animate-fadeIn"
                         onClick={() => { setViewingAvatar(null); setViewingDocument(null); }}
                     >
                         <button className="absolute top-6 right-6 text-white hover:text-error/85 bg-white/10 p-2 rounded-full transition-colors">

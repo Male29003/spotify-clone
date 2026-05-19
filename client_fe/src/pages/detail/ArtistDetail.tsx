@@ -1,6 +1,6 @@
 import React from 'react';
 import {  useNavigate, useParams } from 'react-router-dom';
-import Loader from '../../components/shared/ui/Loader';
+import { TrackTableSkeleton } from '../../components/shared/skeleton/TrackTableSkeleton';
 import { PlayArrow } from '@mui/icons-material';
 import { usePlayerStore } from '../../stores/usePlayerStore';
 import TrackTable from '../../components/detail/TrackTable';
@@ -8,7 +8,8 @@ import { useAuthStore } from '../../stores/auth/authStore';
 import { useGetArtistDetail, useGetRelatedArtists, useToggleFavouriteArtist } from '../../hooks/artist/useArtists';
 import { CustomToast } from '../../components/shared/feedback/CustomToast';
 import DetailPageLayout from '../../layouts/detail/DetailLayout';
-import MediaSection from '../../sections/home/MediaSection';
+import MediaSection from '../../components/shared/media/MediaSection';
+import { MediaSectionSkeleton } from '../../components/shared/skeleton/MediaSectionSkeleton';
 
 const ArtistDetail: React.FC = () => {
     const navigate = useNavigate()
@@ -19,8 +20,8 @@ const ArtistDetail: React.FC = () => {
     const { data: artistData, isLoading } = useGetArtistDetail(short_id || '')
     const artist = artistData?.data || artistData; 
 
-    const { data: relatedArtistsData } = useGetRelatedArtists(artist?.short_id || '')
-    const { mutate: toggleFollow, isPending } = useToggleFavouriteArtist()
+    const { data: relatedArtistsData, isLoading: loadingRelatedArtist } = useGetRelatedArtists(artist?.short_id || '')
+    const { mutate: toggleFollow } = useToggleFavouriteArtist()
 
     const handleFollow = () => {
         if (!isAuthenticated) {
@@ -31,11 +32,9 @@ const ArtistDetail: React.FC = () => {
             toggleFollow(short_id);
     };
 
-    if (isLoading) return <Loader />;
-
-    const releases = artist.releases || [];
-    const tracks = artist.releases.map((r: any) => r.tracks).flat();
-    const latestRelease = releases.length > 0 ? releases[0] : null;
+    const releases = artist?.releases || [];
+    const tracks = artist?.releases.map((r: any) => r.tracks).flat();
+    const latestRelease = releases?.length > 0 ? releases[0] : null;
     const relatedArtists = (relatedArtistsData as any)?.results || []
 
     if (!artist) return <div className="text-center text-text-main mt-20">Artist not found.</div>;
@@ -66,15 +65,18 @@ const ArtistDetail: React.FC = () => {
 
     return (
         <DetailPageLayout 
+            isLoading={isLoading}
             item={artist}
             type='Artist'
             actionBtns={ActionBtns}
             totalTracks={tracks.length}
             mainContent={
-                <TrackTable 
-                    tracks={tracks}
-                    playTrack={playTrack}
-                />
+                isLoading ? <TrackTableSkeleton key={'skeleton-track-table'} rows={5} />
+                :
+                    <TrackTable 
+                        tracks={tracks}
+                        playTrack={playTrack}
+                    />
             }
             subContent={
                 <div className="flex flex-col gap-4">
@@ -106,39 +108,45 @@ const ArtistDetail: React.FC = () => {
             children={
                 <div className="flex flex-col gap-12 mt-4">
                     {/* Dicography */}
-                    {releases.length > 0 && (
-                        <div className="flex flex-col gap-4">
-                        <div className="flex items-center justify-between">
-                            <h2 className="text-2xl font-bold text-text-main hover:underline cursor-pointer">Discography</h2>
-                            {/* Nút xem tất cả */}
-                            {releases.length > 7 && (
-                                <span 
-                                    onClick={() => navigate(`/artist/${artist.short_id}/discography`)}
-                                    className="text-sm font-bold text-text-sub hover:text-text-main cursor-pointer"
-                                >
-                                    Show all
-                                </span>
-                            )}
-                        </div>
-                        <MediaSection 
-                            title=""
-                            items={releases.slice(0,10)}
-                            itemType='release'
-                        />
-                    </div>
-                    )}
+                    {isLoading ? <MediaSectionSkeleton key={'dicography-skeleton'} title='Discography' itemCount={10} />
+                    :
+                        releases.length > 0 && (
+                            <div className="flex flex-col gap-4">
+                                <div className="flex items-center justify-between">
+                                    <h2 className="text-2xl font-bold text-text-main hover:underline cursor-pointer">Discography</h2>
+                                    {/* Nút xem tất cả */}
+                                    {releases.length > 7 && (
+                                        <span 
+                                            onClick={() => navigate(`/artist/${artist.short_id}/discography`)}
+                                            className="text-sm font-bold text-text-sub hover:text-text-main cursor-pointer"
+                                        >
+                                            Show all
+                                        </span>
+                                    )}
+                                </div>
+                                <MediaSection 
+                                    title=""
+                                    items={releases.slice(0,10)}
+                                    itemType='release'
+                                />
+                            </div>
+                        )
+                    }
 
                     {/* You may like - Artists */}
-                    {relatedArtists.length > 0 && (
-                        <div className="flex flex-col gap-4">
-                            <h2 className="text-2xl font-bold text-text-main">Artists You May Like</h2>
-                            <MediaSection 
-                                title=""
-                                items={relatedArtists}
-                                itemType='artist'
-                            />
-                        </div>
-                    )}
+                    {loadingRelatedArtist ? <MediaSectionSkeleton key={'related_releases-skeleton'} title='' type='artist' />
+                    :
+                        relatedArtists.length > 0 && (
+                            <div className="flex flex-col gap-4">
+                                <h2 className="text-2xl font-bold text-text-main">Artists You May Like</h2>
+                                <MediaSection 
+                                    title=""
+                                    items={relatedArtists}
+                                    itemType='artist'
+                                />
+                            </div>
+                        )
+                    }
                 </div>
             }
         />

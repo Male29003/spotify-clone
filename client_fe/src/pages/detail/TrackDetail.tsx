@@ -1,6 +1,5 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
-import Loader from '../../components/shared/ui/Loader';
 import { Favorite, FavoriteBorder, PlayArrow } from '@mui/icons-material';
 import { usePlayerStore } from '../../stores/usePlayerStore';
 import TrackTable from '../../components/detail/TrackTable';
@@ -11,7 +10,10 @@ import DetailPageLayout from '../../layouts/detail/DetailLayout';
 import ArtistMiniCard from '../../components/shared/ui/ArtistMiniCard';
 import { useGetRelatedReleases } from '../../hooks/release/useReleases';
 import { useGetRelatedArtists } from '../../hooks/artist/useArtists';
-import MediaSection from '../../sections/home/MediaSection';
+import MediaSection from '../../components/shared/media/MediaSection';
+import { TrackTableSkeleton } from '../../components/shared/skeleton/TrackTableSkeleton';
+import { MediaSectionSkeleton } from '../../components/shared/skeleton/MediaSectionSkeleton';
+import { ArtistMiniCardSkeleton } from '../../components/shared/skeleton/ArtistMiniCardSkeleton';
 
 const TrackDetail: React.FC = () => {
     const{ user, isAuthenticated } = useAuthStore(state => state)
@@ -21,9 +23,9 @@ const TrackDetail: React.FC = () => {
     // Lấy data
     const { data: trackData, isLoading } = useGetTrackDetail(short_id || '')
     const track = trackData?.data || trackData; 
-    const { data: relatedReleasesData } = useGetRelatedReleases(track.release_short_id || '');
-    const { data: relatedTracksData } = useGetRelatedTracks(track?.short_id || '')
-    const { data: relatedArtistsData } = useGetRelatedArtists(track?.artist?.short_id || '');
+    const { data: relatedReleasesData, isLoading: loadingRelatedRelease } = useGetRelatedReleases(track.release_short_id || '');
+    const { data: relatedTracksData, isLoading: loadingRelatedTrack } = useGetRelatedTracks(track?.short_id || '')
+    const { data: relatedArtistsData, isLoading: loadingRelatedArtist } = useGetRelatedArtists(track?.artist?.short_id || '');
     // Xứ lý chức năng
     const { downloadTrack, isDownloading, cancelDownload } = useTrackDownload()
     const {mutate: toggleMutation} = useToggleFavouriteTrack()
@@ -38,7 +40,6 @@ const TrackDetail: React.FC = () => {
             toggleMutation(short_id)
     }
 
-    if (isLoading) return <Loader />;
     if (!track) return <div className="text-center text-text-main mt-20">Song not found</div>;
 
     const trackItem = {
@@ -103,54 +104,67 @@ const TrackDetail: React.FC = () => {
             type='Track'
             totalTracks={1}
             mainContent={
-                <TrackTable
-                    tracks={[trackItem]}
-                    playTrack={playTrack}
-                />
+                isLoading ? <TrackTableSkeleton key={'skeleton-track-table'} rows={1} />
+                :
+                    <TrackTable
+                        tracks={[trackItem]}
+                        playTrack={playTrack}
+                    />
             }
             subContent={
                 <div className="flex flex-col gap-4">
                     <h3 className="text-lg font-bold text-text-main">About Artist</h3>
-                    <ArtistMiniCard 
-                        artist={track.artist} 
-                    />
+                    {isLoading ? (
+                        <ArtistMiniCardSkeleton />
+                    ) : (
+                        <ArtistMiniCard artist={track.artist} />
+                    )}
                 </div>
             }
             children={
                 <div className='flex flex-col gap-12 mt-4'>
                     {/* You may like - Tracks */}
-                    {relatedTracks.length > 0 && (
-                        <div className="flex flex-col gap-4">
-                            <h2 className="text-2xl font-bold text-text-main">Songs You May Also Like</h2>
-                            <MediaSection 
-                                title=""
-                                items={relatedTracks.slice(0,8)}
-                                itemType='track'
-                            />
-                        </div>
-                    )}
+                    {loadingRelatedTrack ? <MediaSectionSkeleton key={'related_tracks-skeleton'} title='Songs You May Also Like' />
+                    : 
+                        relatedTracks.length > 0 && (
+                            <div className="flex flex-col gap-4">
+                                <h2 className="text-2xl font-bold text-text-main">Songs You May Also Like</h2>
+                                <MediaSection 
+                                    title=""
+                                    items={relatedTracks.slice(0,8)}
+                                    itemType='track'
+                                />
+                            </div>
+                        )
+                    }
                     {/* You may like - Releases */}
-                    {relatedReleases.length > 0 && (
-                        <div className="flex flex-col gap-4">
-                            <h2 className="text-2xl font-bold text-text-main">Releases You May Also Like</h2>
-                            <MediaSection 
-                                title=""
-                                items={relatedReleases.slice(0,8)}
-                                itemType='release'
-                            />
-                        </div>
-                    )}
+                    {loadingRelatedRelease ? <MediaSectionSkeleton key={'related_releases-skeleton'} title='Releases You May Also Like' />
+                    :
+                        relatedReleases.length > 0 && (
+                            <div className="flex flex-col gap-4">
+                                <h2 className="text-2xl font-bold text-text-main">Releases You May Also Like</h2>
+                                <MediaSection 
+                                    title=""
+                                    items={relatedReleases.slice(0,8)}
+                                    itemType='release'
+                                />
+                            </div>
+                        )
+                    }
                     {/* You may like - Artists */}
-                    {relatedArtists.length > 0 && (
-                        <div className="flex flex-col gap-4">
-                            <h2 className="text-2xl font-bold text-text-main">Artists You May Like</h2>
-                            <MediaSection 
-                                title=""
-                                items={relatedArtists.slice(0,8)}
-                                itemType='artist'
-                            />
-                        </div>
-                    )}
+                    {loadingRelatedArtist ? <MediaSectionSkeleton key={'related_artists-skeleton'} title='Artists You May Like'  type='artist' />
+                    :  
+                        relatedArtists.length > 0 && (
+                            <div className="flex flex-col gap-4">
+                                <h2 className="text-2xl font-bold text-text-main">Artists You May Like</h2>
+                                <MediaSection 
+                                    title=""
+                                    items={relatedArtists.slice(0,8)}
+                                    itemType='artist'
+                                />
+                            </div>
+                        )
+                    }
                 </div>
             }
         />

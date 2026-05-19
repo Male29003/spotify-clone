@@ -1,6 +1,5 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
-import Loader from '../../components/shared/ui/Loader';
 import DetailPageLayout from '../../layouts/detail/DetailLayout';
 import TrackTable from '../../components/detail/TrackTable';
 import { useAuthStore } from '../../stores/auth/authStore';
@@ -11,7 +10,10 @@ import ArtistMiniCard from '../../components/shared/ui/ArtistMiniCard';
 import { CustomToast } from '../../components/shared/feedback/CustomToast';
 import { PlayArrow, FavoriteBorder, Favorite, Download, Cancel } from '@mui/icons-material';
 import { useGetRelatedReleases, useGetReleaseDetail, useToggleFavouriteRelease } from '../../hooks/release/useReleases';
-import MediaSection from '../../sections/home/MediaSection';
+import MediaSection from '../../components/shared/media/MediaSection';
+import { TrackTableSkeleton } from '../../components/shared/skeleton/TrackTableSkeleton';
+import { MediaSectionSkeleton } from '../../components/shared/skeleton/MediaSectionSkeleton';
+import { ArtistMiniCardSkeleton } from '../../components/shared/skeleton/ArtistMiniCardSkeleton';
 
 const ReleaseDetail: React.FC = () => {
     const { short_id } = useParams<{ short_id: string }>();
@@ -19,11 +21,11 @@ const ReleaseDetail: React.FC = () => {
     const { user, isAuthenticated }  = useAuthStore(state => state)
 
     // Lấy data
-    const { data: releaseData, isLoading: loadingDetailRelease } = useGetReleaseDetail(short_id || '')
+    const { data: releaseData, isLoading } = useGetReleaseDetail(short_id || '')
     const release = releaseData?.data || releaseData; 
 
-    const { data: relatedReleasesData } = useGetRelatedReleases(release?.short_id || '');
-    const { data: relatedArtistsData } = useGetRelatedArtists(release?.artist?.short_id || '');
+    const { data: relatedReleasesData, isLoading: loadingRelatedRelease } = useGetRelatedReleases(release?.short_id || '');
+    const { data: relatedArtistsData, isLoading: loadingRelatedArtist } = useGetRelatedArtists(release?.artist?.short_id || '');
     // Xứ lý chức năng
     const {mutate: toggleMutation} = useToggleFavouriteRelease()
     const { downloadRelease, isDownloading, cancelDownload } = useReleaseDownload()
@@ -37,8 +39,6 @@ const ReleaseDetail: React.FC = () => {
         if(short_id) 
             toggleMutation(short_id)
     }
-    // Nếu đang xử lý -> giao diện trống
-    if (loadingDetailRelease) return <Loader />;
     // Xứ lý data
     if (!release) return <div className="text-center text-text-main mt-20">Release not found</div>;
 
@@ -106,43 +106,52 @@ const ReleaseDetail: React.FC = () => {
             type='Release'
             totalTracks={tracks.length}
             mainContent={
-                <TrackTable
-                    tracks={tracks}
-                    playTrack={playTrack}
-                />
+                isLoading ? <TrackTableSkeleton key={'skeleton-track-table'} rows={5} />
+                :
+                    <TrackTable
+                        tracks={tracks}
+                        playTrack={playTrack}
+                    />
             }
             subContent={
                 <div className="flex flex-col gap-4">
                     <h3 className="text-lg font-bold text-text-main">About Artist</h3>
-                    <ArtistMiniCard 
-                        artist={release.artist} 
-                    />
+                    {isLoading ? (
+                        <ArtistMiniCardSkeleton />
+                    ) : (
+                        <ArtistMiniCard artist={release.artist} />
+                    )}
                 </div>
             }
             children={
                 <div className='flex flex-col gap-12 mt-4'>
                     {/* You may like - Releases */}
-                    {relatedReleases.length > 0 && (
-                        <div className="flex flex-col gap-4">
-                            <h2 className="text-2xl font-bold text-text-main">You May Also Like (Albums)</h2>
-                            <MediaSection 
-                                title=""
-                                items={relatedReleases.slice(0,8)}
-                                itemType='release'
-                            />
-                        </div>
-                    )}
+                    {loadingRelatedRelease ? <MediaSectionSkeleton key={'related_releases-skeleton'} title='' itemCount={8}/>
+                    :
+                        relatedReleases.length > 0 && (
+                            <div className="flex flex-col gap-4">
+                                <h2 className="text-2xl font-bold text-text-main">You May Also Like (Albums)</h2>
+                                <MediaSection 
+                                    title=""
+                                    items={relatedReleases.slice(0,8)}
+                                    itemType='release'
+                                />
+                            </div>
+                        )
+                    }
                     {/* You may like - Artists */}
-                    {relatedArtists.length > 0 && (
-                        <div className="flex flex-col gap-4">
-                            <h2 className="text-2xl font-bold text-text-main">Fans Also Like</h2>
-                            <MediaSection 
-                                title=""
-                                items={relatedArtists.slice(0,8)}
-                                itemType='artist'
-                            />
-                        </div>
-                    )}
+                    {loadingRelatedArtist ? <MediaSectionSkeleton key={'related_artists-skeleton'} title='' itemCount={8}  type='artist'/>
+                    :    relatedArtists.length > 0 && (
+                            <div className="flex flex-col gap-4">
+                                <h2 className="text-2xl font-bold text-text-main">Fans Also Like</h2>
+                                <MediaSection 
+                                    title=""
+                                    items={relatedArtists.slice(0,8)}
+                                    itemType='artist'
+                                />
+                            </div>
+                        )
+                    }
                 </div>
             }
         />

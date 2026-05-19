@@ -70,7 +70,7 @@ const LoginRegis: React.FC = () => {
                 <div className="w-16 h-16 bg-highlight/10 text-highlight rounded-full flex items-center justify-center mb-4 shadow-inner">
                     <SpotifyIcon />
                 </div>
-                <h1 className="text-3xl font-black text-text-main tracking-tight mb-2">
+                <h1 className="text-3xl font-bold text-text-main tracking-tight mb-2">
                     Welcome Back
                 </h1>
                 <p className="text-text-sub text-sm">

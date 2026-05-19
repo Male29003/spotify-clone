@@ -1,9 +1,9 @@
 import React, { useRef, useState, useCallback } from 'react';
-import CustomCard from '../../components/shared/media/CustomCard';
+import CustomCard from './CustomCard';
 import { ChevronLeft, ChevronRight } from '@mui/icons-material';
-import { usePlayerStore } from '../../stores/usePlayerStore';
+import { usePlayerStore } from '../../../stores/usePlayerStore';
 import { useNavigate } from 'react-router-dom';
-import type { ItemType } from '../../types';
+import type { ItemType } from '../../../types';
 
 interface MediaSectionProps {
     title: string;

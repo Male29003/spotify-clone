@@ -41,7 +41,7 @@ const AdminSider = () => {
     return (
         <>
             <div 
-                className={`fixed inset-0 bg-black/60 z-40 sm:hidden transition-opacity duration-300 ${
+                className={`fixed inset-0 bg-dark/60 z-40 sm:hidden transition-opacity duration-300 ${
                     isExpanded ? 'opacity-100 visible' : 'opacity-0 invisible'
                 }`}
                 onClick={toggleSider}

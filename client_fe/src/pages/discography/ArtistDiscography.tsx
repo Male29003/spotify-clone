@@ -82,9 +82,9 @@ const ArtistDiscography: React.FC = () => {
                                     alt={release.title} 
                                     className="w-full h-full object-cover"
                                 />
-                                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                <div className="absolute inset-0 bg-base/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                                     <button 
-                                        className="btn-neon-glow w-10 h-10 md:w-12 md:h-12 bg-highlight rounded-full flex items-center justify-center text-black shadow-xl hover:scale-105 transition-transform"
+                                        className="btn-neon-glow w-10 h-10 md:w-12 md:h-12 bg-highlight rounded-full flex items-center justify-center text-text-dark shadow-xl hover:scale-105 transition-transform"
                                         onClick={(e) => {
                                             e.stopPropagation();
                                             playTrack(release.tracks[0], release.tracks)

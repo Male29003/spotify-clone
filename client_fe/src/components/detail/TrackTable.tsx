@@ -19,7 +19,7 @@ interface TrackTableProps {
 const TrackTable: React.FC<TrackTableProps> = ({ tracks, playTrack, onRemoveTrack, isServerPaginated = false, hasMoreServer = false, isLoadingMore = false, onLoadMore }) => {
     const gridLayout = "grid grid-cols-[30px_minmax(200px,0.8fr)_120px_100px] gap-4 px-4 py-3 items-center";
     
-    const [displayCount, setDisplayCount] = useState(10);
+    const [displayCount, setDisplayCount] = useState(6);
     const visibleTracks = isServerPaginated ? tracks : tracks.slice(0, displayCount);
     const hasMoreClient = !isServerPaginated && displayCount < tracks.length;
 

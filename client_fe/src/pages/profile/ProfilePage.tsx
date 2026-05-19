@@ -202,7 +202,7 @@ const ProfilePage: React.FC = () => {
                             ${isEditing ? 'group-hover:brightness-50 group-hover:scale-105' : ''}`}
                     />
                     {isEditing && (
-                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-full bg-black/40 pointer-events-none">
+                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-full bg-base/40 pointer-events-none">
                             <EditOutlined className="text-white text-4xl drop-shadow-md" />
                         </div>
                     )}
@@ -218,7 +218,7 @@ const ProfilePage: React.FC = () => {
                         <button
                             onClick={handleImageRemove}
                             type='button'
-                            className="absolute top-2 right-8 bg-black/60 hover:bg-black hover:scale-110 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-all z-20 shadow-md"
+                            className="absolute top-2 right-8 bg-base/60 hover:bg-base hover:scale-110 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-all z-20 shadow-md"
                             title="Remove photo"
                         >
                             <DeleteOutlined fontSize="small" />
@@ -247,7 +247,7 @@ const ProfilePage: React.FC = () => {
                             </>
                         )}
                     </div>
-                    <h2 className="text-2xl md:text-5xl font-black break-all">{user?.username}</h2>
+                    <h2 className="text-2xl md:text-5xl font-bold break-all">{user?.username}</h2>
                     <p className="text-text-sub text-lg mt-2 truncate">{user.email}</p>
                 </div>
             </div>

@@ -13,6 +13,7 @@ import { CustomToast } from '../../components/shared/feedback/CustomToast';
 import { LIKED_SONGS_BASE } from '../../constants/constants';
 import { useGetFavouriteTracks } from '../../hooks/track/useTracks';
 import { api } from '../../api/axiosConfig';
+import { TrackTableSkeleton } from '../../components/shared/skeleton/TrackTableSkeleton';
 
 const PlaylistDetail: React.FC = () => {
     // Lấy slug
@@ -160,7 +161,6 @@ const PlaylistDetail: React.FC = () => {
         }
     }
 
-    if (loadingNormalPlaylist || loadingFavTracks) return <Loader />;
     if (!playlist) return <div className="text-center text-text-main mt-20">Not found playlist</div>;
     
     const ActionBtns = isEditing ? (
@@ -173,7 +173,7 @@ const PlaylistDetail: React.FC = () => {
             </button>
             <button 
                 onClick={handleSave} 
-                className="bg-highlight text-black px-8 py-2 rounded-full font-bold hover:scale-105 transition-transform shadow-lg"
+                className="bg-highlight text-text-dark px-8 py-2 rounded-full font-bold hover:scale-105 transition-transform shadow-lg"
             >
                 Save Changes
             </button>
@@ -208,20 +208,24 @@ const PlaylistDetail: React.FC = () => {
             />
 
             <DetailPageLayout 
+                isLoading={loadingNormalPlaylist || loadingFavTracks}
                 actionBtns={ActionBtns}
                 item={playlist}
                 type='Playlist'
                 totalTracks={tracks.length}
                 mainContent={
-                    <TrackTable
-                        tracks={tracks}
-                        playTrack={playTrack}
-                        onRemoveTrack={isOwner ? handleRemoveTrack : undefined}
-                        isServerPaginated={isLikedSongs}
-                        hasMoreServer={hasMore}
-                        isLoadingMore={isLoadingMore}
-                        onLoadMore={handleLoadMoreLikedSongs}
-                    />
+                    (loadingFavTracks || loadingNormalPlaylist) ? 
+                        <TrackTableSkeleton key={'playlist-skeleton'} rows={5}/>
+                    :
+                        <TrackTable
+                            tracks={tracks}
+                            playTrack={playTrack}
+                            onRemoveTrack={isOwner ? handleRemoveTrack : undefined}
+                            isServerPaginated={isLikedSongs}
+                            hasMoreServer={hasMore}
+                            isLoadingMore={isLoadingMore}
+                            onLoadMore={handleLoadMoreLikedSongs}
+                        />
                 }
                 editConfig={isEditing ? {
                     isEditing: true,

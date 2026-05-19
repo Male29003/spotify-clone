@@ -1,7 +1,7 @@
 import React from "react";
 import { BlockOutlined, CheckCircleOutlined, CloseOutlined } from "@mui/icons-material";
 import type { IRelease } from "../../../types";
-import { BLOCKED_REASON } from "../../../constants/constants";
+
 interface ModalHeaderProps {
     release: IRelease;
     isArtist: boolean;

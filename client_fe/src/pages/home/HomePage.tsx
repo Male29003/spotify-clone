@@ -1,5 +1,6 @@
 import React from 'react';
-import MediaSection from '../../sections/home/MediaSection';
+import MediaSection from '../../components/shared/media/MediaSection';
+import { MediaSectionSkeleton } from '../../components/shared/skeleton/MediaSectionSkeleton';
 import Loader from '../../components/shared/ui/Loader';
 import { useGetTrendingReleases, useGetRecent, useGetRecommended } from '../../hooks/release/useReleases';
 import { useTrendingArtists } from '../../hooks/artist/useArtists';
@@ -20,10 +21,6 @@ const HomePage: React.FC = () => {
     const { data: recentReleases, isLoading: loadingRecentReleases } = useGetRecent();
     const { data: recommendReleases, isLoading: loadingRecommendedReleases } = useGetRecommended();
     
-    if (loadingArtists || loadingReleases || loadingGenres) {
-        return <Loader />;
-    }
-    
     const artists = (artistsData as any)?.results || artistsData || [];
     const releases = (releasesData as any)?.results || releasesData || [];
     const genreMix = (randomGenreMix as any)?.results || randomGenreMix || [];
@@ -43,30 +40,49 @@ const HomePage: React.FC = () => {
         <div className="space-y-10 pb-8 pt-4">
             {isAuthenticated && (
                 <>
-                    {recentRel.length > 0 && (
-                        <MediaSection title="Recent releases" items={recentRel} itemType="release" />
-                    )}
-                    {rcmItems.length > 0 && (
-                        <MediaSection title="Recommend for you" items={rcmItems} itemType="mixed" />
-                    )}
-                    {playlists.length > 0 && (
-                        <MediaSection title="Enjoy your playlists" items={playlists} itemType="playlist" />
-                    )}
+                    {loadingRecentReleases ? <MediaSectionSkeleton title="Recent releases"/> 
+                    : 
+                        recentRel.length > 0 && 
+                            <MediaSection title="Recent releases" items={recentRel} itemType="release" />
+                    }
+                    {loadingRecommendedTracks || loadingRecommendedReleases ? <MediaSectionSkeleton title="Recommend for you" /> 
+                    :
+                        rcmItems.length > 0 && 
+                            <MediaSection title="Recommend for you" items={rcmItems} itemType="mixed" />
+                    }
                 </>
             )}
 
-            {releases.length > 0 && (
-                <MediaSection title="Popular albums and singles" items={releases} itemType="release" />
-            )}
+            {loadingReleases ? <MediaSectionSkeleton title="Popular albums and singles" itemCount={10}/>
+            :
+                releases.length > 0 && (
+                    <MediaSection title="Popular albums and singles" items={releases} itemType="release" />
+                )
+            }
             
-            {artists.length > 0 && (
-                <MediaSection title="Trending artists" items={artists} itemType="artist" />
-            )}
+            {loadingArtists ? <MediaSectionSkeleton title="Trending artists" itemCount={10}/>
+            :
+                artists.length > 0 && (
+                    <MediaSection title="Trending artists" items={artists} itemType="artist" />
+                )
+            }
             
-            {genreMix && genreMix.top_tracks && genreMix.top_tracks.length > 0 && (
-                <MediaSection title={`${genreMix.name} Mix`} items={genreMix.top_tracks} itemType="track" />
+            {loadingGenres ? <MediaSectionSkeleton title="Genre Mix" itemCount={10}/>
+            :   
+                genreMix && genreMix.top_tracks && genreMix.top_tracks.length > 0 && (
+                    <MediaSection title={`${genreMix.name} Mix`} items={genreMix.top_tracks} itemType="track" />
+                )
+            }
+
+            {isAuthenticated && (
+                <>
+                    {loadingPlaylists ? <MediaSectionSkeleton title="Enjoy your playlists" /> 
+                    :
+                        playlists.length > 0 &&
+                            <MediaSection title="Enjoy your playlists" items={playlists} itemType="playlist" />
+                    }
+                </>
             )}
-            
         </div>
     );
 };
