@@ -31,6 +31,7 @@ const DetailPageLayout: React.FC<DetailLayoutProps> = ({
                 <DetailBannerSkeleton type={type} />
             ) : (
                 <DetailBanner 
+                    isLoading={isLoading}
                     item={item} 
                     type={type} 
                     totalTracks={totalTracks} 

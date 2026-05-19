@@ -13,13 +13,14 @@ interface EditConfig {
 }
 
 interface DetailBannerProps {
+    isLoading?: boolean
     item: any;
     totalTracks: number;
     type: 'Playlist' | 'Release' | 'Artist' | 'Genre' | 'Track';
     editConfig?: EditConfig;
 }
 
-const DetailBanner: React.FC<DetailBannerProps> = ({ item, totalTracks, type, editConfig }) => {
+const DetailBanner: React.FC<DetailBannerProps> = ({ isLoading, item, totalTracks, type, editConfig }) => {
     const isArtist = type === 'Artist';
     const isPlaylists = type === 'Playlist';
     const currentImage = editConfig?.isEditing ? editConfig.imagePreview : item?.image;
@@ -134,7 +135,7 @@ const DetailBanner: React.FC<DetailBannerProps> = ({ item, totalTracks, type, ed
                             <span className="text-text-sub">{item.release_date.substring(0, 4)}</span>
                         </>
                     }
-                    {totalTracks != null && totalTracks > 0 && 
+                    {totalTracks != null && totalTracks > 0 && !isLoading &&
                         <>
                             <span>•</span>
                             <span className="text-text-sub">{totalTracks} song{totalTracks > 1 ? 's' : ''}</span>
