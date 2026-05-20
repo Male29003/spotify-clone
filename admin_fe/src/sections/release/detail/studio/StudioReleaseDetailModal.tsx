@@ -87,11 +87,11 @@ const StudioReleaseDetailModal: React.FC<StudioReleaseDetailModalProps> = ({ sho
 
         showConfirm('delete', () => {
             setLoading(true);
+            const formData = new FormData()
+            formData.append('release', '')
             updateTrack({ 
                 short_id: trackShort_id, 
-                data: { 
-                    release: null 
-                }
+                data: formData
             }, {
                 onSuccess: () => {
                     CustomToast.success(`Successfully removed track!`);
@@ -112,9 +112,11 @@ const StudioReleaseDetailModal: React.FC<StudioReleaseDetailModalProps> = ({ sho
         if (!validateReleaseType('add')) return;
 
         setLoading(true)
+        const formData = new FormData()
+        formData.append('release', release.id)
         updateTrack({
             short_id: track.short_id,
-            data:{ release: release.id }
+            data: formData
         }, {
             onSuccess: () => {
                 CustomToast.success(`Added "${track.title}" successfully!`);
