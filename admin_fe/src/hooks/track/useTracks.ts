@@ -138,6 +138,7 @@ export const useUpdateMyTrack = () => {
             queryClient.invalidateQueries({ queryKey: ['track_detail', variables.short_id] });
             queryClient.invalidateQueries({ queryKey: ['unassigned_tracks'] });
             queryClient.invalidateQueries({ queryKey: ['my_release_detail'] }); 
+            queryClient.invalidateQueries({ queryKey: ['my_releases'] }); 
             // admin
             queryClient.invalidateQueries({ queryKey: ['admin_artist_detail'] });
             queryClient.invalidateQueries({ queryKey: ['track-detail', variables.short_id] });
