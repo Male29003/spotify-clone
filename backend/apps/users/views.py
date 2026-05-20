@@ -214,7 +214,7 @@ class ForgotPasswordView(generics.GenericAPIView):
                 message=f"Hi,You have recently required to reset he password for your NKM's account.\n\n \
                     Please enter this OTP code: {otp}\n\n \
                     This code is available in 5 minutes. Please do not share this code to anyone else.",
-                from_email='noreply@yourdomain.com', # Có thể bỏ trống nếu dùng default trong settings
+                from_email=settings.DEFAULT_FROM_EMAIL, # Có thể bỏ trống nếu dùng default trong settings
                 recipient_list=[email],
                 fail_silently=False,
             )
@@ -249,7 +249,7 @@ class ResendOTPView(generics.GenericAPIView):
             send_mail(
                 subject=subject,
                 message=msg,
-                from_email='noreply@yourdomain.com',
+                from_email=settings.DEFAULT_FROM_EMAIL,
                 recipient_list=[email],
                 fail_silently=False,
             )
