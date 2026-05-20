@@ -6,6 +6,7 @@ from ..genres.serializers import GenreSerializer
 from ..core.models import R2ImageField
 from ..core.validators import check_file_security
 from django.core.files.base import ContentFile
+from apps.releases.models import Release
 
 class ShortTrackSerializer(serializers.ModelSerializer):
     artist = ShortArtistSerializer(read_only=True, many=False)
@@ -68,6 +69,11 @@ class TrackSerializer(serializers.ModelSerializer):
     image = R2ImageField(source='release.image', read_only=True)
     lyrics_file = serializers.SerializerMethodField()
     lyrics = serializers.FileField(write_only=True, required=False, allow_null=True)
+    release = serializers.PrimaryKeyRelatedField(
+        queryset=Release.objects.all(),
+        required=False,
+        allow_null=True
+    )
 
     class Meta:
         model = Track
@@ -121,7 +127,10 @@ class TrackSerializer(serializers.ModelSerializer):
                 instance.lyrics_file.delete(save=False)
             # Gán thẳng file mới
             instance.lyrics_file = new_file
-
+        if 'release' in self.initial_data:
+            req_release = self.initial_data.get('release')
+            if req_release in ['null', 'undefined', '', None]:
+                validated_data['release'] = None
         return super().update(instance, validated_data)
 
     def to_representation(self, instance):
