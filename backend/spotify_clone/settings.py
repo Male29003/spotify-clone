@@ -212,7 +212,14 @@ AWS_S3_CUSTOM_DOMAIN = os.getenv('AWS_S3_CUSTOM_DOMAIN')
 AWS_S3_REGION_NAME = 'auto'
 
 # Chỉ định Django dùng S3 cho Media
-DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+STORAGES = {
+    "default": {
+        "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+    },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+}
 
 # CHỐT HẠ Ở ĐÂY: Gắn cứng https:// vào đầu đường dẫn
 MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/'
