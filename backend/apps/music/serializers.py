@@ -120,6 +120,8 @@ class TrackSerializer(serializers.ModelSerializer):
         return url_string
 
     def update(self, instance, validated_data):
+        print("Validated data in TrackSerializer update:", validated_data)
+        print("Initial data in TrackSerializer update:", self.initial_data)
         if 'lyrics' in validated_data:
             new_file = validated_data.pop('lyrics')
             # Xóa file cũ để dọn rác
