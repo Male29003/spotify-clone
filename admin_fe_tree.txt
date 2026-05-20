@@ -1,0 +1,195 @@
+admin_fe
+├── README.md
+├── eslint.config.js
+├── export_fe.py
+├── index.html
+├── package-lock.json
+├── package.json
+├── public
+│   ├── favicon.svg
+│   └── icons.svg
+├── src
+│   ├── App.css
+│   ├── App.tsx
+│   ├── api
+│   │   ├── analytics
+│   │   │   └── api.ts
+│   │   ├── artist
+│   │   │   └── api.ts
+│   │   ├── auth
+│   │   │   └── api.ts
+│   │   ├── axiosConfig.ts
+│   │   ├── genre
+│   │   │   └── api.ts
+│   │   ├── music
+│   │   │   └── api.ts
+│   │   ├── release
+│   │   │   └── api.ts
+│   │   └── user
+│   │       └── api.ts
+│   ├── assets
+│   │   ├── album.jpg
+│   │   ├── genre.jpg
+│   │   ├── hero.png
+│   │   ├── logo.png
+│   │   ├── playlist.jpg
+│   │   ├── profile.jpeg
+│   │   ├── react.svg
+│   │   ├── staff.png
+│   │   ├── track.jpg
+│   │   └── vite.svg
+│   ├── components
+│   │   ├── main_ui
+│   │   │   ├── ActionHeader.tsx
+│   │   │   ├── DataTable.tsx
+│   │   │   ├── Filter.tsx
+│   │   │   ├── SearchInput.tsx
+│   │   │   ├── StatCard.tsx
+│   │   │   ├── ThemeToggleButton.tsx
+│   │   │   └── Title.tsx
+│   │   └── shared
+│   │       ├── Loadable.tsx
+│   │       ├── SpotifyIcon.tsx
+│   │       ├── feedback
+│   │       │   ├── BlockConfirmModal.tsx
+│   │       │   ├── ConfirmModal.tsx
+│   │       │   ├── CustomToast.tsx
+│   │       │   └── PasswordValidator.tsx
+│   │       ├── skeleton
+│   │       │   ├── AdminDashboardSkeleton.tsx
+│   │       │   ├── ArtistDashboardSkeleton.tsx
+│   │       │   ├── ArtistDetailSkeleton.tsx
+│   │       │   ├── DataTableSkeleton.tsx
+│   │       │   ├── ReleaseDetailSkeleton.tsx
+│   │       │   └── UserDetailSkeleton.tsx
+│   │       └── ui
+│   │           ├── DraggableList.tsx
+│   │           ├── Loader.tsx
+│   │           ├── NotificationDropdown.tsx
+│   │           ├── Pagination.tsx
+│   │           └── PlayingAnimation.tsx
+│   ├── configs
+│   │   ├── get_env.ts
+│   │   └── menu
+│   │       ├── adminMenuConfig.tsx
+│   │       └── artistMenuConfig.tsx
+│   ├── constants
+│   │   └── constants.ts
+│   ├── guards
+│   │   ├── AdminRoute.tsx
+│   │   └── ArtistRoute.tsx
+│   ├── hooks
+│   │   ├── analytics
+│   │   │   └── useAnalytics.ts
+│   │   ├── artist
+│   │   │   └── useArtists.ts
+│   │   ├── genre
+│   │   │   └── useGenre.ts
+│   │   ├── notification
+│   │   │   └── useInitNotifications.ts
+│   │   ├── release
+│   │   │   └── useReleases.ts
+│   │   ├── track
+│   │   │   └── useTracks.ts
+│   │   ├── useAuth.ts
+│   │   ├── useDebounce.ts
+│   │   ├── useTheme.ts
+│   │   └── user
+│   │       └── useUsers.ts
+│   ├── index.css
+│   ├── layouts
+│   │   ├── AdminLayout.tsx
+│   │   ├── ArtistStudioLayout.tsx
+│   │   ├── AuthLayout
+│   │   │   └── index.tsx
+│   │   ├── player
+│   │   │   ├── Player.tsx
+│   │   │   ├── PlayerControls.tsx
+│   │   │   ├── TrackInfo.tsx
+│   │   │   └── Volume.tsx
+│   │   └── shared
+│   │       ├── Header.tsx
+│   │       └── Sider.tsx
+│   ├── main.tsx
+│   ├── pages
+│   │   ├── admin
+│   │   │   ├── Dashboard.tsx
+│   │   │   ├── approvals
+│   │   │   │   └── ApprovalsPage.tsx
+│   │   │   ├── artist
+│   │   │   │   └── ArtistManagePage.tsx
+│   │   │   ├── music
+│   │   │   │   ├── GenreManagePage.tsx
+│   │   │   │   ├── ReleaseManagePage.tsx
+│   │   │   │   └── TrackManagePage.tsx
+│   │   │   └── user
+│   │   │       ├── StaffManagePage.tsx
+│   │   │       └── UserManagePage.tsx
+│   │   ├── auth
+│   │   │   ├── Login.css
+│   │   │   └── Login.tsx
+│   │   ├── error
+│   │   │   └── not-found.tsx
+│   │   ├── notifications
+│   │   │   └── NotificationsPage.tsx
+│   │   └── studio
+│   │       ├── ContentManagePage.tsx
+│   │       ├── Dashboard.tsx
+│   │       ├── ProfilePage.tsx
+│   │       └── UploadPage.tsx
+│   ├── routes
+│   │   ├── AuthRoutes.tsx
+│   │   ├── ErrorRoutes.tsx
+│   │   ├── admin
+│   │   │   ├── AdminRoutes.tsx
+│   │   │   ├── StudioRoutes.tsx
+│   │   │   └── index.tsx
+│   │   └── index.tsx
+│   ├── sections
+│   │   ├── artist
+│   │   │   ├── ArtistColumn.tsx
+│   │   │   ├── ArtistDetailModal.tsx
+│   │   │   └── ReleaseRow.tsx
+│   │   ├── genre
+│   │   │   ├── AddEditGenreModal.tsx
+│   │   │   └── GenreColumn.tsx
+│   │   ├── release
+│   │   │   ├── ReleaseColumn.tsx
+│   │   │   └── detail
+│   │   │       ├── ModalHeader.tsx
+│   │   │       ├── ModalInfoSection.tsx
+│   │   │       ├── admin
+│   │   │       │   └── AdminReleaseDetailModal.tsx
+│   │   │       └── studio
+│   │   │           └── StudioReleaseDetailModal.tsx
+│   │   ├── staff
+│   │   │   ├── AddEditStaffModal.tsx
+│   │   │   └── StaffColumns.tsx
+│   │   ├── track
+│   │   │   ├── TrackColumns.tsx
+│   │   │   └── TrackDetailModal.tsx
+│   │   ├── upload_release
+│   │   │   └── FeaturedArtistInput.tsx
+│   │   └── user
+│   │       ├── UserColumns.tsx
+│   │       └── UserDetailModal.tsx
+│   ├── stores
+│   │   ├── auth
+│   │   │   └── authStore.ts
+│   │   ├── useBlockModalStore.ts
+│   │   ├── useConfirmModalStore.ts
+│   │   ├── useNotificationStore.ts
+│   │   ├── usePlayerStore.ts
+│   │   └── useSiderStore.ts
+│   ├── types
+│   │   └── index.ts
+│   └── utils
+│       ├── cropImage.ts
+│       ├── formatters.ts
+│       └── validators.ts
+├── tsconfig.app.json
+├── tsconfig.json
+├── tsconfig.node.json
+└── vite.config.ts
+
+60 directories, 132 files

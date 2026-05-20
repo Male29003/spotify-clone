@@ -39,28 +39,37 @@ client_fe
 │   │   ├── detail
 │   │   │   ├── DetailBanner.tsx
 │   │   │   └── TrackTable.tsx
-│   │   └── shared
-│   │       ├── Loadable.tsx
-│   │       ├── SpotifyIcon.tsx
-│   │       ├── feedback
-│   │       │   ├── CustomToast.tsx
-│   │       │   └── PasswordValidator.tsx
-│   │       ├── media
-│   │       │   ├── CustomCard.tsx
-│   │       │   ├── CustomItem.tsx
-│   │       │   └── TrackActions.tsx
-│   │       ├── menu
-│   │       │   ├── PlaylistSubMenu.tsx
-│   │       │   └── TrackContextMenu.tsx
-│   │       └── ui
-│   │           ├── ArtistMiniCard.tsx
-│   │           ├── ConfirmModal.tsx
-│   │           ├── DraggableList.tsx
-│   │           ├── Loader.tsx
-│   │           ├── LyricsSide.tsx
-│   │           ├── NotificationDropdown.tsx
-│   │           ├── PasswordInput.tsx
-│   │           └── PlayingAnimation.tsx
+│   │   ├── shared
+│   │   │   ├── Loadable.tsx
+│   │   │   ├── SpotifyIcon.tsx
+│   │   │   ├── feedback
+│   │   │   │   ├── CustomToast.tsx
+│   │   │   │   └── PasswordValidator.tsx
+│   │   │   ├── media
+│   │   │   │   ├── CustomCard.tsx
+│   │   │   │   ├── CustomItem.tsx
+│   │   │   │   ├── MediaSection.tsx
+│   │   │   │   └── TrackActions.tsx
+│   │   │   ├── menu
+│   │   │   │   ├── PlaylistSubMenu.tsx
+│   │   │   │   └── TrackContextMenu.tsx
+│   │   │   └── ui
+│   │   │       ├── ArtistMiniCard.tsx
+│   │   │       ├── ConfirmModal.tsx
+│   │   │       ├── DraggableList.tsx
+│   │   │       ├── Loader.tsx
+│   │   │       ├── LyricsSide.tsx
+│   │   │       ├── NotificationDropdown.tsx
+│   │   │       ├── PasswordInput.tsx
+│   │   │       └── PlayingAnimation.tsx
+│   │   └── skeleton
+│   │       ├── ArtistMiniCardSkeleton.tsx
+│   │       ├── CardSkeleton.tsx
+│   │       ├── DetailBannerSkeleton.tsx
+│   │       ├── MediaSectionSkeleton.tsx
+│   │       ├── MostPopularReleaseSkeleton.tsx
+│   │       ├── SkeletonElements.tsx
+│   │       └── TrackTableSkeleton.tsx
 │   ├── configs
 │   │   └── get_env.ts
 │   ├── constants
@@ -142,7 +151,6 @@ client_fe
 │   │   ├── apply-artist
 │   │   │   └── ImageCropModal.tsx
 │   │   ├── home
-│   │   │   ├── MediaSection.tsx
 │   │   │   └── SearchModal.tsx
 │   │   ├── library
 │   │   │   ├── LibraryList.tsx
@@ -170,4 +178,4 @@ client_fe
 ├── tsconfig.node.json
 └── vite.config.js
 
-56 directories, 114 files
+57 directories, 121 files
