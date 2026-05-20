@@ -221,10 +221,9 @@ MEDIA_URL = f'{AWS_S3_CUSTOM_DOMAIN}/'
 # 7. EMAIL CONFIGURATION
 # ==========================================
 # Đọc từ file .env
-EMAIL_BACKEND = 'anymail.backends.mailjet.EmailBackend' # Bắt buộc: Bảo Django xài chuẩn SMTP
+EMAIL_BACKEND = "anymail.backends.sendinblue.EmailBackend" # Bắt buộc: Bảo Django xài chuẩn SMTP
 ANYMAIL = {
-    "MAILJET_API_KEY": os.getenv('MAILJET_API_KEY'),
-    "MAILJET_SECRET_KEY": os.getenv('MAILJET_SECRET_KEY'),
+    "SENDINBLUE_API_KEY": os.getenv("BREVO_API_KEY"),
 }
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL')
 
