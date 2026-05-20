@@ -125,7 +125,7 @@ class UserRegistrationView(generics.CreateAPIView):
                 send_mail(
                     subject='[NK Tech] Verify Your Registration',
                     message=f"Hi {user.username},\n\nWelcome to NK Tech! Please enter this OTP code to verify your account: {otp}\n\nThis code is valid for 5 minutes.",
-                    from_email='noreply@yourdomain.com', # Thay bằng email thật của sếp nếu có
+                    from_email=settings.DEFAULT_FROM_EMAIL, # Thay bằng email thật của sếp nếu có
                     recipient_list=[user.email],
                     fail_silently=False, # BẮT BUỘC để False để nó văng exception nếu xịt
                 )

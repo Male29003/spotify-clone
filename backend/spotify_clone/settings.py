@@ -64,6 +64,7 @@ INSTALLED_APPS = [
     'apps.subscription',
     'apps.analytics',
     'channels',
+    'anymail',
 ]
 
 MIDDLEWARE = [
@@ -219,21 +220,17 @@ MEDIA_URL = f'{AWS_S3_CUSTOM_DOMAIN}/'
 # ==========================================
 # 7. EMAIL CONFIGURATION
 # ==========================================
-# Cấu hình gửi mail qua SMTP của Gmail
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-
 # Đọc từ file .env
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend' # Bắt buộc: Bảo Django xài chuẩn SMTP
-EMAIL_HOST = 'smtp.gmail.com'                                 # Địa chỉ bưu điện của Google
-EMAIL_PORT = 587                                              # Cổng làm việc
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+EMAIL_BACKEND = 'anymail.backends.mailjet.EmailBackend' # Bắt buộc: Bảo Django xài chuẩn SMTP
+ANYMAIL = {
+    "MAILJET_API_KEY": os.getenv('MAILJET_API_KEY'),
+    "MAILJET_SECRET_KEY": os.getenv('MAILJET_SECRET_KEY'),
+}
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL')
+
+#EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+#EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 # Optional: Tên người gửi mặc định (Ví dụ: "Spotify Clone Admin <spotify.clone@gmail.com>")
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 # ==========================================
 # 8. THIRD-PARTY KEYS & MISC SETTINGS
