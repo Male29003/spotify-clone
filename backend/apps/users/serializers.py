@@ -184,6 +184,7 @@ class UserUpdateSerializer(CountryFieldMixin, serializers.ModelSerializer):
         return value
     
     def update(self, instance, validated_data):
+        print(validated_data)
         if 'profile_picture' in validated_data:
             new_picture = validated_data.get('profile_picture')
 
