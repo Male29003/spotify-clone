@@ -226,6 +226,10 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 
 # Đọc từ file .env
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend' # Bắt buộc: Bảo Django xài chuẩn SMTP
+EMAIL_HOST = 'smtp.gmail.com'                                 # Địa chỉ bưu điện của Google
+EMAIL_PORT = 587                                              # Cổng làm việc
+EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 # Optional: Tên người gửi mặc định (Ví dụ: "Spotify Clone Admin <spotify.clone@gmail.com>")

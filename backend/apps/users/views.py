@@ -106,26 +106,43 @@ class UserRegistrationView(generics.CreateAPIView):
     serializer_class = serializers.RegisterSerializer
     permission_classes = [permissions.AllowAny]
 
-    def perform_create(self, serializer):
-        # Lưu user vào DB (Lát bên serializer mình sẽ set is_active=False)
-        user = serializer.save()
-        
-        # Tạo OTP đăng ký & Lưu Cache 5 phút (Nhớ đổi key để không trùng với Forgot Pass)
-        otp = f"{random.randint(100000, 999999)}"
-        cache.set(f"reg_otp_{user.email}", otp, timeout=300) 
-        
-        # Gửi mail
+    def create(self, request, *args, **kwargs):
+        # Validate data trước
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
         try:
-            send_mail(
-                subject='[NK Tech] Verify Your Registration',
-                message=f"Hi {user.username},\n\nWelcome to NK Tech! Please enter this OTP code to verify your account: {otp}\n\nThis code is valid for 5 minutes.",
-                from_email='noreply@yourdomain.com',
-                recipient_list=[user.email],
-                fail_silently=False,
-            )
+            # Bọc transaction: Có biến là Rollback toàn bộ!
+            with transaction.atomic():
+                # 1. Lưu user (sẽ bị hủy nếu phần dưới lỗi)
+                user = serializer.save()
+                
+                # 2. Tạo OTP & Lưu Cache 5 phút
+                otp = f"{random.randint(100000, 999999)}"
+                cache.set(f"reg_otp_{user.email}", otp, timeout=300) 
+                
+                # 3. Gửi mail
+                send_mail(
+                    subject='[NK Tech] Verify Your Registration',
+                    message=f"Hi {user.username},\n\nWelcome to NK Tech! Please enter this OTP code to verify your account: {otp}\n\nThis code is valid for 5 minutes.",
+                    from_email='noreply@yourdomain.com', # Thay bằng email thật của sếp nếu có
+                    recipient_list=[user.email],
+                    fail_silently=False, # BẮT BUỘC để False để nó văng exception nếu xịt
+                )
         except Exception as e:
-            # Ghi log lỗi email nếu cần
+            # Gửi mail lỗi -> Code nhảy vào đây -> Transaction rollback (Xóa User)
             print(f"Error sending email: {e}")
+            return Response(
+                {"error": "Hệ thống mail đang bận, không thể gửi OTP. Vui lòng thử lại sau."}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+        # Trả về thành công nếu qua ải
+        return Response(
+            {"message": "Đăng ký thành công. Vui lòng kiểm tra email để lấy mã OTP!"}, 
+            status=status.HTTP_201_CREATED
+        )
+    
 # xác thực otp để dky
 class VerifyRegistrationOTPView(generics.GenericAPIView):
     permission_classes = [permissions.AllowAny]
@@ -141,7 +158,7 @@ class VerifyRegistrationOTPView(generics.GenericAPIView):
         if not cached_otp:
             return Response({"error": "Mã OTP đã hết hạn hoặc không tồn tại."}, status=status.HTTP_400_BAD_REQUEST)
         
-        if cached_otp != otp:
+        if str(cached_otp) != str(otp):
             return Response({"error": "Mã OTP không chính xác."}, status=status.HTTP_400_BAD_REQUEST)
 
         # OTP chuẩn -> Kích hoạt User
@@ -152,8 +169,8 @@ class VerifyRegistrationOTPView(generics.GenericAPIView):
             # Xóa OTP khỏi cache
             cache.delete(f"reg_otp_{email}")
 
-            today = timezone.now()
-            stat, created = UserDailyStat.objects.get_or_create(date=today)
+            today_date = timezone.now().date()
+            stat, created = UserDailyStat.objects.get_or_create(date=today_date)
             if not created:
                 stat.new_users = F('new_users') + 1
                 stat.save(update_fields=['new_users'])
