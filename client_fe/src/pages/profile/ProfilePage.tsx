@@ -163,6 +163,8 @@ const ProfilePage: React.FC = () => {
                 data.append('gender', formData.gender);
                 if (imageFile) {
                     data.append('profile_picture', imageFile);
+                } else if (imagePreview === '') {
+                    data.append('profile_picture', 'default/profile.jpeg'); 
                 }
 
                 await updateProfileMutation(data, {
