@@ -1,6 +1,7 @@
 # 🎵 NK-MusicStream - Music Streaming Platform
 
 NK-MusicStream là một nền tảng phát nhạc trực tuyến (Spotify Clone), được thiết kế để mang lại trải nghiệm nghe nhạc mượt mà cho người dùng, đồng thời cung cấp một cho các Nghệ sĩ phát hành tác phẩm quản lý cập nhật nhạc của mình.
+<img width="1867" height="887" alt="Screenshot 2026-05-28 195343" src="https://github.com/user-attachments/assets/f2ebe4e4-e065-41f8-b8df-d175109f3c22" />
 
 ## Các chức năng chính
 
@@ -28,14 +29,27 @@ NK-MusicStream là một nền tảng phát nhạc trực tuyến (Spotify Clone
 
 ## Giao diện ứng dụng
 
-### Trang Home & Khám phá Âm nhạc
-
-### Trình phát nhạc toàn cục (Global Player)
-
+### Trang Home & Khám phá Âm nhạc &  Trình phát nhạc toàn cục (Global Player)
+<img width="1919" height="868" alt="Screenshot 2026-05-28 195137" src="https://github.com/user-attachments/assets/c77805aa-0aa4-4109-8790-cc20251066cf" />
+<img width="1919" height="870" alt="Screenshot 2026-05-28 195231" src="https://github.com/user-attachments/assets/3e7febed-bd27-41c2-9663-be4e3d20eb84" />
 ### Artist Portal - Quản lý Release & Upload Track
 
 ### Admin Dashboard - Kiểm duyệt Âm nhạc
-
+#### Dashboard
+<img width="1919" height="869" alt="Screenshot 2026-05-28 195442" src="https://github.com/user-attachments/assets/4945ed4b-a872-4bca-a43e-b661089b48f0" />
+#### Duyệt nhạc
+<img width="1919" height="868" alt="Screenshot 2026-05-28 195506" src="https://github.com/user-attachments/assets/01ea2f43-235f-4b5c-b883-744a47dfd02a" />
+#### Quản lý Nhạc
+<img width="1918" height="866" alt="Screenshot 2026-05-28 195556" src="https://github.com/user-attachments/assets/0c250183-65ac-45c1-a2f5-d34af2f1d4b5" />
+#### Quản lý Nghệ sĩ
+<img width="1919" height="869" alt="Screenshot 2026-05-28 195644" src="https://github.com/user-attachments/assets/ec956bfb-0c8b-43e7-adcf-8a923f819d47" />
+#### Quản lý Thể loại
+<img width="1919" height="869" alt="Screenshot 2026-05-28 195701" src="https://github.com/user-attachments/assets/0b49741b-9e40-440a-9b21-083af12c0f5b" />
+#### Quản lý User
+<img width="1919" height="868" alt="Screenshot 2026-05-28 195743" src="https://github.com/user-attachments/assets/51709e4c-0da7-4e2d-a5cd-dda911248093" />
+#### Quản lý Staff
+<img width="1919" height="873" alt="Screenshot 2026-05-28 195834" src="https://github.com/user-attachments/assets/5b22e075-118f-454d-89b1-73669e4164b2" />
+<img width="1917" height="870" alt="Screenshot 2026-05-28 195858" src="https://github.com/user-attachments/assets/af6db404-652c-406e-8b3d-2d57f9c9c500" />
 ## Hướng dẫn cài đặt
 
 Repository này chứa cả mã nguồn Frontend (React/Vite) và Backend (Django REST Framework). Để chạy dự án trên máy local, bạn cần thiết lập lần lượt Backend rồi mới đến Frontend.
