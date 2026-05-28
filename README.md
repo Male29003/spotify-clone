@@ -32,9 +32,26 @@ NK-MusicStream là một nền tảng phát nhạc trực tuyến (Spotify Clone
 
 ## Giao diện ứng dụng
 
-### Trang Home & Khám phá Âm nhạc &  Trình phát nhạc toàn cục (Global Player)
-<img width="1919" height="868" alt="Screenshot 2026-05-28 195137" src="https://github.com/user-attachments/assets/c77805aa-0aa4-4109-8790-cc20251066cf" />
-<img width="1919" height="870" alt="Screenshot 2026-05-28 195231" src="https://github.com/user-attachments/assets/3e7febed-bd27-41c2-9663-be4e3d20eb84" />
+### Listener - Giao diện của người nghe
+ 
+ #### Trang Home & Khám phá Âm nhạc &  Trình phát nhạc
+ <p>
+  <img width="1919" height="868" alt="Screenshot 2026-05-28 195137" src="https://github.com/user-attachments/assets/c77805aa-0aa4-4109-8790-cc20251066cf" />
+  <img width="1919" height="870" alt="Screenshot 2026-05-28 195231" src="https://github.com/user-attachments/assets/3e7febed-bd27-41c2-9663-be4e3d20eb84" />
+ </p>
+
+ #### Quản lý danh sách phát & Karaoke với những bài hát có lyrics.
+  <img width="1861" height="875" alt="Screenshot 2026-05-29 004956" src="https://github.com/user-attachments/assets/4dbec29b-864f-49ef-9f4d-773406dc9015" />
+
+ ### Quên mật khẩu: Xác thực OTP qua email và cập nhật lại mật khẩu mới
+ <p>
+  <img width="703" height="579" alt="Screenshot 2026-05-29 004434" src="https://github.com/user-attachments/assets/9cffa5bd-e6ea-421f-b686-59351c3d8ec7" />
+  <img width="749" height="480" alt="Screenshot 2026-05-29 004744" src="https://github.com/user-attachments/assets/2ecb4484-0763-4150-ac28-8ea851d0ea58" />
+  <img width="659" height="692" alt="Screenshot 2026-05-29 004755" src="https://github.com/user-attachments/assets/a76f1c01-f306-4b1f-970b-91638936841d" />
+ </p>
+
+ ### Quản lý thông tin cá nhân 
+ <img width="1919" height="867" alt="Screenshot 2026-05-29 005113" src="https://github.com/user-attachments/assets/951121af-59f9-4b95-bf1e-8ab6f44f733c" />
 
 ### Artist Portal - Quản lý Release & Upload Track
   
@@ -57,19 +74,27 @@ NK-MusicStream là một nền tảng phát nhạc trực tuyến (Spotify Clone
   <img width="1919" height="869" alt="Screenshot 2026-05-29 003633" src="https://github.com/user-attachments/assets/7047949b-1f39-4bee-8224-18d52cccf7cc" />
 
 ### Admin Dashboard - Kiểm duyệt Âm nhạc
-#### Dashboard
+#### Dashboard 
+- **Thống kế:** lượt nghe, top Nghệ sĩ, top Release. 
 <img width="1919" height="869" alt="Screenshot 2026-05-28 195442" src="https://github.com/user-attachments/assets/4945ed4b-a872-4bca-a43e-b661089b48f0" />
 
 #### Duyệt nhạc & nghệ sĩ đăng ký
 <img width="1919" height="868" alt="Screenshot 2026-05-28 195506" src="https://github.com/user-attachments/assets/01ea2f43-235f-4b5c-b883-744a47dfd02a" />
 
 #### Quản lý Nhạc
+- **Xem Release / Bài hát được phát trên nền tảng**
 <img width="1918" height="866" alt="Screenshot 2026-05-28 195556" src="https://github.com/user-attachments/assets/0c250183-65ac-45c1-a2f5-d34af2f1d4b5" />
+
+- **Phát nhạc Amin muốn để kiểm tra, ... Có thể block riêng lẻ từng Bài hát hoặc cả Release nếu phát hiện vi phạm.**
+<img width="1914" height="876" alt="Screenshot 2026-05-29 005415" src="https://github.com/user-attachments/assets/39582df8-9543-415a-9325-0a2d85baacc1" />
 
 #### Quản lý Nghệ sĩ
 <img width="1919" height="869" alt="Screenshot 2026-05-28 195644" src="https://github.com/user-attachments/assets/ec956bfb-0c8b-43e7-adcf-8a923f819d47" />
 
-#### Quản lý Thể loại
+- **Xem chi tiết từng Nghệ sĩ: Từng Release và Bài hát của Nghệ sĩ đó trên nền tảng. Admin có thể block Bài hát/ Release nếu phát hiện vi phạm.**
+<img width="1917" height="872" alt="Screenshot 2026-05-29 005816" src="https://github.com/user-attachments/assets/f497ad17-f600-4c77-9256-86ece0c8e3a8" />
+
+#### Quản lý Thể loại: Admin có thể Thêm / Chỉnh sửa Thể loại nhạc hoặc Deactive Thể loại đó.
 <img width="1919" height="869" alt="Screenshot 2026-05-28 195701" src="https://github.com/user-attachments/assets/0b49741b-9e40-440a-9b21-083af12c0f5b" />
 
 #### Quản lý User
