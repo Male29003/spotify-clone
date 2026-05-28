@@ -37,40 +37,51 @@ NK-MusicStream là một nền tảng phát nhạc trực tuyến (Spotify Clone
 <img width="1919" height="870" alt="Screenshot 2026-05-28 195231" src="https://github.com/user-attachments/assets/3e7febed-bd27-41c2-9663-be4e3d20eb84" />
 
 ### Artist Portal - Quản lý Release & Upload Track
+  
   #### Xem thống kê lượt nghe & Top bài hát được nghe
   <img width="1919" height="868" alt="Screenshot 2026-05-29 003506" src="https://github.com/user-attachments/assets/a198d633-4dde-4c7b-88c1-5b8c51127d7f" />
+  
   #### Tạo Release mới
   <p>
     <img width="1919" height="870" alt="Screenshot 2026-05-29 003916" src="https://github.com/user-attachments/assets/5c467c97-5e95-4363-99dc-99207d77b2d4" />
     <img width="1275" height="867" alt="Screenshot 2026-05-29 003950" src="https://github.com/user-attachments/assets/a092acaa-c809-44f0-b5d0-b97670a18e55" />
   </p>
+  
   #### Quản lý Release Draft - Tự do tùy chỉnh
   <p>
     <img width="1919" height="868" alt="Screenshot 2026-05-29 003734" src="https://github.com/user-attachments/assets/18ef0079-974f-48a3-9a6f-6e2468eec3bc" />
     <img width="1919" height="869" alt="Screenshot 2026-05-29 003759" src="https://github.com/user-attachments/assets/6edfc20d-c994-4814-b801-56e413a36397" />
   </p>
+  
   #### Quản lý Thông tin nghệ sĩ của mình - Có thể đổi Nghệ danh + Avatar + Banner
   <img width="1919" height="869" alt="Screenshot 2026-05-29 003633" src="https://github.com/user-attachments/assets/7047949b-1f39-4bee-8224-18d52cccf7cc" />
 
 ### Admin Dashboard - Kiểm duyệt Âm nhạc
 #### Dashboard
 <img width="1919" height="869" alt="Screenshot 2026-05-28 195442" src="https://github.com/user-attachments/assets/4945ed4b-a872-4bca-a43e-b661089b48f0" />
+
 #### Duyệt nhạc & nghệ sĩ đăng ký
 <img width="1919" height="868" alt="Screenshot 2026-05-28 195506" src="https://github.com/user-attachments/assets/01ea2f43-235f-4b5c-b883-744a47dfd02a" />
+
 #### Quản lý Nhạc
 <img width="1918" height="866" alt="Screenshot 2026-05-28 195556" src="https://github.com/user-attachments/assets/0c250183-65ac-45c1-a2f5-d34af2f1d4b5" />
+
 #### Quản lý Nghệ sĩ
 <img width="1919" height="869" alt="Screenshot 2026-05-28 195644" src="https://github.com/user-attachments/assets/ec956bfb-0c8b-43e7-adcf-8a923f819d47" />
+
 #### Quản lý Thể loại
 <img width="1919" height="869" alt="Screenshot 2026-05-28 195701" src="https://github.com/user-attachments/assets/0b49741b-9e40-440a-9b21-083af12c0f5b" />
+
 #### Quản lý User
 <img width="1919" height="868" alt="Screenshot 2026-05-28 195743" src="https://github.com/user-attachments/assets/51709e4c-0da7-4e2d-a5cd-dda911248093" />
+
 #### Quản lý Staff
 <img width="1919" height="873" alt="Screenshot 2026-05-28 195834" src="https://github.com/user-attachments/assets/5b22e075-118f-454d-89b1-73669e4164b2" />
 <img width="1917" height="870" alt="Screenshot 2026-05-28 195858" src="https://github.com/user-attachments/assets/af6db404-652c-406e-8b3d-2d57f9c9c500" />
 
 ## Hướng dẫn cài đặt
 Repository này chứa cả mã nguồn Frontend (React/Vite) và Backend (Django REST Framework). Để chạy dự án trên máy local, bạn cần thiết lập lần lượt Backend rồi mới đến Frontend.
+
 ### Lưu ý: Yêu cầu hệ thống:
 - Node.js & npm
 - Python 3.10+
@@ -162,4 +173,4 @@ npm run dev
 
 # 📫 Thông tin liên hệ
 
-Nếu bạn có bất kỳ thắc mắc nào về dự án, cần trao đổi về technical stack hoặc gặp khó khăn khi cài đặt, vui lòng liên hệ với tôi qua email: namnguyen23009@gmail.com (hoặc nam23009@gmail.com).
+Nếu bạn có bất kỳ thắc mắc nào về dự án, cần trao đổi về technical stack hoặc gặp khó khăn khi cài đặt, vui lòng liên hệ với tôi qua email: namnguyen23009@gmail.com.
