@@ -1,46 +1,135 @@
-# 🎵 Clone Spotify App
+# 🎵 NK-MusicStream - Music Streaming Platform
 
-A full-stack Spotify clone web application built with **Django** (Backend) and **React** (Frontend).  
-This project demonstrates integration between a Django REST API and a modern React frontend, containerized using **Docker Compose**.
+NK-MusicStream là một nền tảng phát nhạc trực tuyến (Spotify Clone), được thiết kế để mang lại trải nghiệm nghe nhạc mượt mà cho người dùng, đồng thời cung cấp một cho các Nghệ sĩ phát hành tác phẩm quản lý cập nhật nhạc của mình.
 
----
+## Các chức năng chính
 
-## 🚀 1. About the App
-This is a Spotify-like clone app with features such as:
-- Backend API powered by Django + Django REST Framework
-- Frontend built in React with modern UI
-- Realtime feature support (Chat, Now Playing - optional)
----
+- **Bảo mật & Tài khoản:** Đăng nhập / Đăng ký sử dụng bảo mật JWT (Bearer Token). Xác thực tài khoản qua Email OTP tự động. Phân quyền chặt chẽ: Listener (Người nghe), Artist (Nghệ sĩ) và Admin.
+- **Trình phát nhạc cốt lõi:** Trải nghiệm nghe nhạc liền mạch không gián đoạn khi chuyển trang. Hỗ trợ phát nhạc, quản lý danh sách chờ, xem lời bài hát.
 
-## 📦 2. Dockerized Setup (Frontend + Backend)
-To simplify setup, this project uses **Docker Compose** to containerize both the frontend and backend.
-> If you don’t have Docker Desktop installed, download it here:
-👉 [Install Docker Desktop](https://www.docker.com/get-started/)
-  _(Right-click or Ctrl/Cmd+Click to open in a new tab)_
+- **Artist Portal (Dành cho Nghệ sĩ):** Không gian làm việc riêng biệt để tạo Release (Single/EP/Album). Hỗ trợ upload ảnh bìa, tệp âm thanh gốc, quản lý danh sách bài hát (Draft), thay đổi thứ tự và Submit chờ Admin xét duyệt.
 
-After Docker is installed, you can run the app.
----
+- **Admin Dashboard:** Khu vực dành riêng cho quản trị viên để kiểm duyệt nhạc. Admin có thể duyệt (Approve) hoặc từ chối (Reject) các Release kèm theo lý do chi tiết trả về cho Nghệ sĩ.
 
-## 🛠️ 3. How to Run the Project
+- **Premium Subscription:** Tích hợp cổng thanh toán Stripe, cho phép người dùng nâng cấp lên tài khoản Premium để trải nghiệm các tính năng đặc quyền.
 
-Open your terminal and run the following commands:
+- **Lưu trữ & Bảo mật:** Tích hợp Cloudflare R2 (chuẩn S3) để lưu trữ tệp đa phương tiện. Tích hợp Redis để xử lý dữ liệu và hệ thống gửi mail tự động.
+
+## Tech Stack
+
+<p>
+  <img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React" />
+  <img src="https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind CSS" />
+  <img src="https://img.shields.io/badge/Django-092E20?style=for-the-badge&logo=django&logoColor=green" alt="Django REST" />
+  <img src="https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL" />
+  <img src="https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white" alt="Redis" />
+</p>
+
+## Giao diện ứng dụng
+
+### Trang Home & Khám phá Âm nhạc
+
+### Trình phát nhạc toàn cục (Global Player)
+
+### Artist Portal - Quản lý Release & Upload Track
+
+### Admin Dashboard - Kiểm duyệt Âm nhạc
+
+## Hướng dẫn cài đặt
+
+Repository này chứa cả mã nguồn Frontend (React/Vite) và Backend (Django REST Framework). Để chạy dự án trên máy local, bạn cần thiết lập lần lượt Backend rồi mới đến Frontend.
+
+### Lưu ý: Yêu cầu hệ thống:
+
+- Node.js & npm
+- Python 3.10+
+- Cơ sở dữ liệu PostgreSQL và Redis đã được cài đặt và chạy ngầm dưới local.
+- Tài khoản Cloudflare R2 (hoặc AWS S3), Stripe và Brevo/Resend để cấu hình biến môi trường.
+
+### Cài đặt Backend (Django)
+
+1. Clone repository này về máy:
 
 ```bash
-# Step 1: Clone the repository
-git clone https://github.com/your-username/clone-spotify.git
-cd clone-spotify
+   git clone https://github.com/Male29003/spotify-clone
+```
 
-# Step 2: Set up
-  ## Install npm dependencies for frontend
-    cd frontend
-    npm install
-  ## Build images
-    cd ..
-    docker-compose build
+2. Mở terminal, di chuyển vào thư mục backend và tạo môi trường ảo (Virtual Environment):
 
-# Step 3: Start containers
-docker-compose up
-## If you want to run it background
-docker-compose up -d
+```bash
+   python -m venv venv
+   # Kích hoạt venv (Windows)
+   venv\Scripts\activate
+   # Kích hoạt venv (Mac/Linux)
+   source venv/bin/activate
+```
 
+3. Cài đặt các thư viện cần thiết:
 
+```bash
+   pip install -r requirements.txt
+```
+
+4. Tạo file .env ở thư mục gốc của backend và cấu hình các thông số cốt lõi (DB, Redis, S3, Email, Stripe):
+
+```bash
+DEBUG=True
+SECRET_KEY=chuoi-secret-key-cua-ban
+MUSIC_ENCRYPTION_KEY=chuoi-ma-hoa-nhac-cua-ban
+CORS_ALLOWED_ORIGINS=http://127.0.0.1:5173,http://127.0.0.1:3000
+ALLOWED_HOSTS=127.0.0.1,localhost
+
+DB_USER=postgres
+DB_PASSWORD=your-db-password
+DB_NAME=spotify_clone
+DB_HOST=localhost
+DB_PORT=5432
+
+AWS_ACCESS_KEY_ID=your_access_key
+AWS_SECRET_ACCESS_KEY=your_secret_key
+AWS_STORAGE_BUCKET_NAME=your_bucket_name
+AWS_S3_ENDPOINT_URL=https://[account-id].r2.cloudflarestorage.com
+AWS_S3_CUSTOM_DOMAIN=your_custom_domain.r2.dev
+
+BREVO_API_KEY=your_brevo_api_key
+DEFAULT_FROM_EMAIL=your_email@gmail.com
+```
+
+5. Khởi tạo Database và chạy server:
+
+```bash
+python manage.py makemigrations
+python manage.py migrate
+python manage.py runserver
+```
+
+### Cài đặt Frontend (React)
+
+6. Mở terminal mới và di chuyển vào thư mục frontend:
+
+```bash
+cd frontend
+```
+
+7. Cài đặt các thư viện (node_modules):
+
+```bash
+npm install
+```
+
+8. Tạo file .env trong thư mục frontend và cấu hình đường dẫn gọi API:
+
+```code snippet
+VITE_API_URL=http://localhost:8000/api/v1
+```
+
+8. Khởi chạy giao diện Frontend:
+
+```bash
+npm run dev
+```
+
+# 📫 Thông tin liên hệ
+
+Nếu bạn có bất kỳ thắc mắc nào về dự án, cần trao đổi về technical stack hoặc gặp khó khăn khi cài đặt, vui lòng liên hệ với tôi qua email: namnguyen23009@gmail.com (hoặc nam23009@gmail.com).
