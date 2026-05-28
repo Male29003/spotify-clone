@@ -32,6 +32,7 @@ NK-MusicStream là một nền tảng phát nhạc trực tuyến (Spotify Clone
 ### Trang Home & Khám phá Âm nhạc &  Trình phát nhạc toàn cục (Global Player)
 <img width="1919" height="868" alt="Screenshot 2026-05-28 195137" src="https://github.com/user-attachments/assets/c77805aa-0aa4-4109-8790-cc20251066cf" />
 <img width="1919" height="870" alt="Screenshot 2026-05-28 195231" src="https://github.com/user-attachments/assets/3e7febed-bd27-41c2-9663-be4e3d20eb84" />
+
 ### Artist Portal - Quản lý Release & Upload Track
 
 ### Admin Dashboard - Kiểm duyệt Âm nhạc
